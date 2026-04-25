@@ -6,11 +6,23 @@ import * as z from "zod";
 import { toast } from "sonner";
 import {
   useCreateLeads,
+  useAddContactToLead,
   getListLeadsQueryKey,
   getGetLeadStatsQueryKey,
 } from "@workspace/api-client-react";
+import type { DuplicateConflict } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Plus, Upload, FileDown, FileText } from "lucide-react";
+import {
+  ChevronLeft,
+  Plus,
+  Upload,
+  FileDown,
+  FileText,
+  AlertTriangle,
+  UserPlus,
+  SkipForward,
+  CheckCircle2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +43,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { downloadCsvTemplate, parseLeadsCsv } from "@/lib/csv";
 
@@ -43,6 +56,184 @@ const singleLeadSchema = z.object({
   state: z.string().min(2, "State is required"),
   country: z.string().min(2, "Country is required").default("USA"),
 });
+
+type ResultSummary = {
+  created: number;
+  skipped: Array<{ name: string; email: string }>;
+  conflicts: DuplicateConflict[];
+};
+
+function ConflictPanel({
+  conflicts,
+  skipped,
+  onDone,
+}: {
+  conflicts: DuplicateConflict[];
+  skipped: Array<{ name: string; email: string }>;
+  onDone: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const addContact = useAddContactToLead();
+  const [resolved, setResolved] = useState<Record<string, "merged" | "skipped">>(
+    {},
+  );
+
+  const allResolved = conflicts.every((c) => resolved[c.incomingEmail]);
+
+  const handleMerge = (conflict: DuplicateConflict) => {
+    addContact.mutate(
+      {
+        leadId: conflict.existingLeadId,
+        data: { name: conflict.incomingName, email: conflict.incomingEmail, outreachSentAt: null },
+      },
+      {
+        onSuccess: () => {
+          setResolved((prev) => ({ ...prev, [conflict.incomingEmail]: "merged" }));
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          toast.success(`${conflict.incomingName} added as additional contact`);
+        },
+        onError: (err) => {
+          toast.error("Failed to merge contact", {
+            description: err instanceof Error ? err.message : "Unknown error",
+          });
+        },
+      },
+    );
+  };
+
+  const handleSkip = (conflict: DuplicateConflict) => {
+    setResolved((prev) => ({ ...prev, [conflict.incomingEmail]: "skipped" }));
+  };
+
+  return (
+    <div className="space-y-4 mt-6">
+      {skipped.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-blue-500" />
+              <CardTitle className="text-base text-blue-800">
+                {skipped.length} exact duplicate{skipped.length === 1 ? "" : "s"} skipped
+              </CardTitle>
+            </div>
+            <CardDescription className="text-blue-700">
+              These emails are already in your pipeline — no action needed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1">
+              {skipped.map((s) => (
+                <li key={s.email} className="flex items-center gap-2 text-sm text-blue-800">
+                  <span className="font-medium">{s.name}</span>
+                  <span className="text-blue-600 font-mono text-xs">{s.email}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {conflicts.length > 0 && (
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <CardTitle className="text-base text-amber-800">
+                {conflicts.length} address conflict{conflicts.length === 1 ? "" : "s"} — action needed
+              </CardTitle>
+            </div>
+            <CardDescription className="text-amber-700">
+              These leads share a property address with an existing contact. Merge them to track multiple decision-makers at one property, or skip.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {conflicts.map((c) => {
+              const status = resolved[c.incomingEmail];
+              return (
+                <div
+                  key={c.incomingEmail}
+                  className={`border rounded-lg p-4 bg-white transition-opacity ${
+                    status ? "opacity-60" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Incoming
+                        </span>
+                        <span className="font-medium text-sm">{c.incomingName}</span>
+                        <span className="font-mono text-xs text-muted-foreground">{c.incomingEmail}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Existing
+                        </span>
+                        <span className="font-medium text-sm">{c.existingLeadName}</span>
+                        <span className="font-mono text-xs text-muted-foreground">{c.existingLeadEmail}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span>Property:</span>
+                        <span className="font-medium text-foreground">{c.propertyAddress}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 shrink-0">
+                      {!status ? (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleMerge(c)}
+                            disabled={addContact.isPending}
+                            className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            <UserPlus className="h-3.5 w-3.5" />
+                            Merge
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSkip(c)}
+                          >
+                            <SkipForward className="h-3.5 w-3.5 mr-1" />
+                            Skip
+                          </Button>
+                        </>
+                      ) : status === "merged" ? (
+                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Merged
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Skipped</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {allResolved && (
+              <div className="flex justify-end pt-2">
+                <Button onClick={onDone} className="bg-indigo-600 hover:bg-indigo-700">
+                  Done — View Leads
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {conflicts.length === 0 && skipped.length > 0 && (
+        <div className="flex justify-end">
+          <Button onClick={onDone} className="bg-indigo-600 hover:bg-indigo-700">
+            View Leads
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AddLeads() {
   const [, setLocation] = useLocation();
@@ -57,6 +248,7 @@ export default function AddLeads() {
   } | null>(null);
   const [csvText, setCsvText] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [result, setResult] = useState<ResultSummary | null>(null);
 
   const form = useForm<z.infer<typeof singleLeadSchema>>({
     resolver: zodResolver(singleLeadSchema),
@@ -71,18 +263,43 @@ export default function AddLeads() {
     },
   });
 
+  const invalidateLeads = () => {
+    queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+  };
+
+  const handleResult = (
+    data: { leads: unknown[]; skipped: Array<{ name: string; email: string }>; conflicts: DuplicateConflict[] },
+    defaultLabel: string,
+  ) => {
+    invalidateLeads();
+    const hasIssues = data.skipped.length > 0 || data.conflicts.length > 0;
+
+    if (data.leads.length > 0) {
+      const msg =
+        data.leads.length === 1
+          ? `${defaultLabel} added`
+          : `${data.leads.length} leads added`;
+      toast.success(msg);
+    }
+
+    if (!hasIssues) {
+      setLocation("/leads");
+      return;
+    }
+
+    setResult({
+      created: data.leads.length,
+      skipped: data.skipped,
+      conflicts: data.conflicts,
+    });
+  };
+
   const onSubmitSingle = (values: z.infer<typeof singleLeadSchema>) => {
     createLeads.mutate(
       { data: { leads: [values] } },
       {
-        onSuccess: () => {
-          toast.success("Lead created successfully");
-          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          queryClient.invalidateQueries({
-            queryKey: getGetLeadStatsQueryKey(),
-          });
-          setLocation("/leads");
-        },
+        onSuccess: (data) => handleResult(data, values.name),
         onError: (err) => {
           toast.error("Failed to create lead", {
             description: err instanceof Error ? err.message : "Unknown error",
@@ -107,14 +324,7 @@ export default function AddLeads() {
     createLeads.mutate(
       { data: { leads, batchLabel: label } },
       {
-        onSuccess: () => {
-          toast.success(`Added ${leads.length} leads to batch "${label}"`);
-          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          queryClient.invalidateQueries({
-            queryKey: getGetLeadStatsQueryKey(),
-          });
-          setLocation("/leads");
-        },
+        onSuccess: (data) => handleResult(data, label),
         onError: (err) => {
           toast.error("Failed to upload batch", {
             description: err instanceof Error ? err.message : "Unknown error",
@@ -161,9 +371,7 @@ export default function AddLeads() {
     });
   };
 
-  const onCsvFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const onCsvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     await handleFile(file);
@@ -512,6 +720,14 @@ export default function AddLeads() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {result && (result.skipped.length > 0 || result.conflicts.length > 0) && (
+        <ConflictPanel
+          conflicts={result.conflicts}
+          skipped={result.skipped}
+          onDone={() => setLocation("/leads")}
+        />
+      )}
     </div>
   );
 }

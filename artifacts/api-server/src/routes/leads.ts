@@ -3,19 +3,24 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
   addLead,
+  addContactToLead,
   clearLeads,
   deleteLead as removeLead,
+  findLeadByEmail,
+  findLeadsByAddress,
   getLead,
   listLeads,
+  normalizeAddress,
   pendingLeads,
   setEnriching,
   setEnrichment,
   setFailed,
+  updateAdditionalContactSentAt,
   updateLead,
 } from "../lib/store";
 import { enrichLead } from "../lib/enrich";
 import { SAMPLE_LEADS } from "../lib/sample-leads";
-import type { Lead, LeadStats } from "@workspace/api-zod";
+import type { Lead, LeadStats, DuplicateConflict } from "@workspace/api-zod";
 
 const LeadInputSchema = z.object({
   name: z.string().min(1),
@@ -46,15 +51,53 @@ router.post("/leads", (req, res) => {
     return;
   }
   const { leads: input } = parsed.data;
-  // If multiple leads, automatically tag them with a shared batch id so
-  // they can be visually grouped and exported together later.
+
+  const created: Lead[] = [];
+  const skipped: Array<{ name: string; email: string }> = [];
+  const conflicts: DuplicateConflict[] = [];
+
+  // Determine batch id/label for multi-lead uploads
   const isBatch = input.length > 1;
   const batchId = parsed.data.batchId ?? (isBatch ? randomUUID() : null);
-  const batchLabel = parsed.data.batchLabel ?? (isBatch
-    ? `Batch ${new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} (${input.length} leads)`
-    : null);
-  const created = input.map((l) => addLead(l, batchId, batchLabel));
-  res.json({ leads: created });
+  const batchLabel =
+    parsed.data.batchLabel ??
+    (isBatch
+      ? `Batch ${new Date().toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })} (${input.length} leads)`
+      : null);
+
+  for (const lead of input) {
+    // 1. Exact duplicate: same email already in store
+    const byEmail = findLeadByEmail(lead.email);
+    if (byEmail) {
+      skipped.push({ name: lead.name, email: lead.email });
+      continue;
+    }
+
+    // 2. Same address, different contact: flag as conflict
+    const byAddress = findLeadsByAddress(lead.propertyAddress);
+    if (byAddress.length > 0) {
+      const primary = byAddress[0]!;
+      conflicts.push({
+        incomingName: lead.name,
+        incomingEmail: lead.email,
+        existingLeadId: primary.id,
+        existingLeadName: primary.name,
+        existingLeadEmail: primary.email,
+        propertyAddress: lead.propertyAddress,
+      });
+      continue;
+    }
+
+    // 3. No conflict — create normally
+    created.push(addLead(lead, batchId, batchLabel));
+  }
+
+  res.json({ leads: created, skipped, conflicts });
 });
 
 router.delete("/leads", (_req, res) => {
@@ -193,6 +236,61 @@ router.delete("/leads/:leadId", (req, res) => {
   }
   res.json({ success: true, message: "Lead deleted" });
 });
+
+// ---------- Additional contacts (duplicate merging) ----------
+
+const AddContactBody = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  outreachSentAt: z.string().nullable().default(null),
+});
+
+router.post("/leads/:leadId/contacts", (req, res) => {
+  const id = req.params["leadId"]!;
+  const lead = getLead(id);
+  if (!lead) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+  const parsed = AddContactBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const updated = addContactToLead(id, parsed.data);
+  res.json(updated);
+});
+
+const UpdateContactBody = z.object({
+  email: z.string().email(),
+  outreachSentAt: z.string().nullable().optional(),
+});
+
+router.patch("/leads/:leadId/contacts", (req, res) => {
+  const id = req.params["leadId"]!;
+  const lead = getLead(id);
+  if (!lead) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+  const parsed = UpdateContactBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  if (parsed.data.outreachSentAt !== undefined) {
+    const updated = updateAdditionalContactSentAt(
+      id,
+      parsed.data.email,
+      parsed.data.outreachSentAt,
+    );
+    res.json(updated);
+  } else {
+    res.json(lead);
+  }
+});
+
+// ---------- Enrichment ----------
 
 router.post("/leads/:leadId/enrich", async (req, res) => {
   const id = req.params["leadId"]!;

@@ -3,6 +3,7 @@ import {
   useListLeads,
   getListLeadsQueryKey,
   useUpdateLead,
+  useUpdateAdditionalContact,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -16,6 +17,7 @@ import {
   ExternalLink,
   RotateCcw,
   Plus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -23,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { Lead } from "@workspace/api-client-react";
+import type { Lead, AdditionalContact } from "@workspace/api-client-react";
 
 type Tier = "hot" | "warm" | "cold";
 
@@ -51,11 +53,94 @@ const TIER_META: Record<
   },
 };
 
-function buildMailtoUrl(lead: Lead): string {
-  if (!lead.enrichment?.outreachEmail) return `mailto:${lead.email}`;
+function buildMailtoUrl(lead: Lead, overrideEmail?: string): string {
+  const to = overrideEmail ?? lead.email;
+  if (!lead.enrichment?.outreachEmail) return `mailto:${to}`;
   const subject = encodeURIComponent(lead.enrichment.outreachEmail.subject);
   const body = encodeURIComponent(lead.enrichment.outreachEmail.body);
-  return `mailto:${lead.email}?subject=${subject}&body=${body}`;
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+function AdditionalContactRow({
+  lead,
+  contact,
+}: {
+  lead: Lead;
+  contact: AdditionalContact;
+}) {
+  const queryClient = useQueryClient();
+  const updateContact = useUpdateAdditionalContact();
+  const isSent = !!contact.outreachSentAt;
+
+  const handleSend = () => {
+    window.location.href = buildMailtoUrl(lead, contact.email);
+    setTimeout(() => {
+      updateContact.mutate(
+        {
+          leadId: lead.id,
+          data: { email: contact.email, outreachSentAt: new Date().toISOString() },
+        },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+            toast.success(`Outreach opened for ${contact.name}`);
+          },
+        },
+      );
+    }, 1000);
+  };
+
+  const handleMarkUnsent = () => {
+    updateContact.mutate(
+      { leadId: lead.id, data: { email: contact.email, outreachSentAt: null } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          toast("Marked as unsent");
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-md bg-muted/30 border border-muted">
+      <div className="flex items-center gap-2 min-w-0">
+        <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="text-sm font-medium truncate">{contact.name}</span>
+        <span className="text-xs text-muted-foreground font-mono truncate">
+          {contact.email}
+        </span>
+        {isSent && (
+          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-[11px] px-1.5 h-5">
+            <CheckCircle2 className="h-2.5 w-2.5" />
+            Sent {contact.outreachSentAt ? format(new Date(contact.outreachSentAt), "MMM d") : ""}
+          </Badge>
+        )}
+      </div>
+      <div className="shrink-0">
+        {isSent ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs text-muted-foreground gap-1"
+            onClick={handleMarkUnsent}
+          >
+            <RotateCcw className="h-3 w-3" /> Unsend
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="h-7 px-2 text-xs gap-1 bg-primary/80 hover:bg-primary text-white"
+            onClick={handleSend}
+            disabled={updateContact.isPending}
+          >
+            <Send className="h-3 w-3" />
+            Send to this contact
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function OutreachCard({ lead }: { lead: Lead }) {
@@ -67,6 +152,7 @@ function OutreachCard({ lead }: { lead: Lead }) {
   const email = lead.enrichment?.outreachEmail;
   const tier = (lead.enrichment?.tier ?? "cold") as Tier;
   const meta = TIER_META[tier];
+  const hasAdditional = lead.additionalContacts.length > 0;
 
   const handleSend = () => {
     window.location.href = buildMailtoUrl(lead);
@@ -120,6 +206,12 @@ function OutreachCard({ lead }: { lead: Lead }) {
                     : ""}
                 </Badge>
               )}
+              {hasAdditional && (
+                <Badge variant="outline" className="gap-1 text-[11px]">
+                  <Users className="h-3 w-3" />
+                  {lead.additionalContacts.length + 1} contacts
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="font-semibold text-base text-foreground">
@@ -161,7 +253,7 @@ function OutreachCard({ lead }: { lead: Lead }) {
                 className="gap-2 bg-primary hover:bg-primary/90 shadow-sm"
               >
                 <Send className="h-4 w-4" />
-                Approve &amp; Send
+                {hasAdditional ? `Send to ${lead.name}` : "Approve & Send"}
               </Button>
             )}
           </div>
@@ -190,6 +282,17 @@ function OutreachCard({ lead }: { lead: Lead }) {
           {expanded && (
             <div className="bg-white dark:bg-black border rounded-md px-5 py-4 font-serif text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
               {email.body}
+            </div>
+          )}
+
+          {hasAdditional && (
+            <div className="space-y-2 pt-1">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Additional contacts at this property
+              </p>
+              {lead.additionalContacts.map((c) => (
+                <AdditionalContactRow key={c.email} lead={lead} contact={c} />
+              ))}
             </div>
           )}
         </CardContent>

@@ -5,6 +5,7 @@
  * RMA Lead Enrichment API
  * OpenAPI spec version: 0.1.0
  */
+import type { AdditionalContact } from "./additionalContact";
 import type { LeadEnrichment } from "./leadEnrichment";
 import type { LeadStatus } from "./leadStatus";
 
@@ -38,8 +39,10 @@ export interface Lead {
    */
   notes: string | null;
   /**
-   * ISO timestamp when the outreach email was approved and sent by a rep.
+   * ISO timestamp when the outreach email was approved and sent by a rep (primary contact).
    * @nullable
    */
   outreachSentAt: string | null;
+  /** Additional contacts found at the same property address via duplicate detection. */
+  additionalContacts: AdditionalContact[];
 }

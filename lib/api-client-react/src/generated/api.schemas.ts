@@ -94,6 +94,33 @@ export interface LeadEnrichment {
   warnings: string[];
 }
 
+export interface AdditionalContact {
+  name: string;
+  email: string;
+  /**
+   * ISO timestamp when outreach was sent to this contact.
+   * @nullable
+   */
+  outreachSentAt: string | null;
+}
+
+/**
+ * An incoming lead that shares a property address with an existing lead but has a different contact.
+ */
+export interface DuplicateConflict {
+  incomingName: string;
+  incomingEmail: string;
+  existingLeadId: string;
+  existingLeadName: string;
+  existingLeadEmail: string;
+  propertyAddress: string;
+}
+
+export type CreateLeadsResultSkippedItem = {
+  name: string;
+  email: string;
+};
+
 export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus];
 
 export const LeadStatus = {
@@ -133,10 +160,21 @@ export interface Lead {
    */
   notes: string | null;
   /**
-   * ISO timestamp when the outreach email was approved and sent by a rep.
+   * ISO timestamp when the outreach email was approved and sent by a rep (primary contact).
    * @nullable
    */
   outreachSentAt: string | null;
+  /** Additional contacts found at the same property address via duplicate detection. */
+  additionalContacts: AdditionalContact[];
+}
+
+export interface CreateLeadsResult {
+  /** Leads that were successfully created. */
+  leads: Lead[];
+  /** Leads skipped because they are exact duplicates (same email already in store). */
+  skipped: CreateLeadsResultSkippedItem[];
+  /** Leads that share a property address with an existing lead but have a different contact — user must decide whether to merge. */
+  conflicts: DuplicateConflict[];
 }
 
 export interface LeadList {
@@ -205,4 +243,10 @@ export type CreateLeadsBody = {
   batchId?: string;
   /** Optional human-readable label for the batch (e.g. file name). */
   batchLabel?: string;
+};
+
+export type UpdateAdditionalContactBody = {
+  email: string;
+  /** @nullable */
+  outreachSentAt?: string | null;
 };

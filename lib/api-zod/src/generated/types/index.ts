@@ -6,8 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./additionalContact";
 export * from "./censusData";
 export * from "./createLeadsBody";
+export * from "./createLeadsResult";
+export * from "./createLeadsResultSkippedItem";
+export * from "./duplicateConflict";
 export * from "./enrichBatchResult";
 export * from "./healthStatus";
 export * from "./lead";
@@ -23,5 +27,6 @@ export * from "./outreachEmail";
 export * from "./scheduleStatus";
 export * from "./successMessage";
 export * from "./triggerResult";
+export * from "./updateAdditionalContactBody";
 export * from "./updateLeadBody";
 export * from "./walkScoreData";

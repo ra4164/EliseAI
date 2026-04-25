@@ -17,7 +17,9 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdditionalContact,
   CreateLeadsBody,
+  CreateLeadsResult,
   EnrichBatchResult,
   HealthStatus,
   Lead,
@@ -26,6 +28,7 @@ import type {
   ScheduleStatus,
   SuccessMessage,
   TriggerResult,
+  UpdateAdditionalContactBody,
   UpdateLeadBody,
 } from "./api.schemas";
 
@@ -181,7 +184,7 @@ export function useListLeads<
 }
 
 /**
- * Add new lead rows. They start in 'pending' state and can be enriched.
+ * Add new lead rows. Exact duplicates (same email) are skipped. Same-address conflicts are returned for user resolution.
  * @summary Create leads
  */
 export const getCreateLeadsUrl = () => {
@@ -191,8 +194,8 @@ export const getCreateLeadsUrl = () => {
 export const createLeads = async (
   createLeadsBody: CreateLeadsBody,
   options?: RequestInit,
-): Promise<LeadList> => {
-  return customFetch<LeadList>(getCreateLeadsUrl(), {
+): Promise<CreateLeadsResult> => {
+  return customFetch<CreateLeadsResult>(getCreateLeadsUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -758,6 +761,182 @@ export const useDeleteLead = <
   TContext
 > => {
   return useMutation(getDeleteLeadMutationOptions(options));
+};
+
+/**
+ * Used to merge a same-address duplicate — adds the incoming contact to the existing lead's additionalContacts list.
+ * @summary Add an additional contact to an existing lead
+ */
+export const getAddContactToLeadUrl = (leadId: string) => {
+  return `/api/leads/${leadId}/contacts`;
+};
+
+export const addContactToLead = async (
+  leadId: string,
+  additionalContact: AdditionalContact,
+  options?: RequestInit,
+): Promise<Lead> => {
+  return customFetch<Lead>(getAddContactToLeadUrl(leadId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(additionalContact),
+  });
+};
+
+export const getAddContactToLeadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addContactToLead>>,
+    TError,
+    { leadId: string; data: BodyType<AdditionalContact> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addContactToLead>>,
+  TError,
+  { leadId: string; data: BodyType<AdditionalContact> },
+  TContext
+> => {
+  const mutationKey = ["addContactToLead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addContactToLead>>,
+    { leadId: string; data: BodyType<AdditionalContact> }
+  > = (props) => {
+    const { leadId, data } = props ?? {};
+
+    return addContactToLead(leadId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddContactToLeadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addContactToLead>>
+>;
+export type AddContactToLeadMutationBody = BodyType<AdditionalContact>;
+export type AddContactToLeadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add an additional contact to an existing lead
+ */
+export const useAddContactToLead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addContactToLead>>,
+    TError,
+    { leadId: string; data: BodyType<AdditionalContact> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addContactToLead>>,
+  TError,
+  { leadId: string; data: BodyType<AdditionalContact> },
+  TContext
+> => {
+  return useMutation(getAddContactToLeadMutationOptions(options));
+};
+
+/**
+ * @summary Update an additional contact's outreachSentAt
+ */
+export const getUpdateAdditionalContactUrl = (leadId: string) => {
+  return `/api/leads/${leadId}/contacts`;
+};
+
+export const updateAdditionalContact = async (
+  leadId: string,
+  updateAdditionalContactBody: UpdateAdditionalContactBody,
+  options?: RequestInit,
+): Promise<Lead> => {
+  return customFetch<Lead>(getUpdateAdditionalContactUrl(leadId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateAdditionalContactBody),
+  });
+};
+
+export const getUpdateAdditionalContactMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdditionalContact>>,
+    TError,
+    { leadId: string; data: BodyType<UpdateAdditionalContactBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdditionalContact>>,
+  TError,
+  { leadId: string; data: BodyType<UpdateAdditionalContactBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAdditionalContact"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdditionalContact>>,
+    { leadId: string; data: BodyType<UpdateAdditionalContactBody> }
+  > = (props) => {
+    const { leadId, data } = props ?? {};
+
+    return updateAdditionalContact(leadId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdditionalContactMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdditionalContact>>
+>;
+export type UpdateAdditionalContactMutationBody =
+  BodyType<UpdateAdditionalContactBody>;
+export type UpdateAdditionalContactMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update an additional contact's outreachSentAt
+ */
+export const useUpdateAdditionalContact = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdditionalContact>>,
+    TError,
+    { leadId: string; data: BodyType<UpdateAdditionalContactBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdditionalContact>>,
+  TError,
+  { leadId: string; data: BodyType<UpdateAdditionalContactBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAdditionalContactMutationOptions(options));
 };
 
 /**

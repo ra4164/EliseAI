@@ -97,14 +97,30 @@ export const ListLeadsResponse = zod.object({
         .string()
         .nullable()
         .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
+          "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+        ),
+      additionalContacts: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            email: zod.string(),
+            outreachSentAt: zod
+              .string()
+              .nullable()
+              .describe(
+                "ISO timestamp when outreach was sent to this contact.",
+              ),
+          }),
+        )
+        .describe(
+          "Additional contacts found at the same property address via duplicate detection.",
         ),
     }),
   ),
 });
 
 /**
- * Add new lead rows. They start in 'pending' state and can be enriched.
+ * Add new lead rows. Exact duplicates (same email) are skipped. Same-address conflicts are returned for user resolution.
  * @summary Create leads
  */
 export const CreateLeadsBody = zod.object({
@@ -132,87 +148,133 @@ export const CreateLeadsBody = zod.object({
 });
 
 export const CreateLeadsResponse = zod.object({
-  leads: zod.array(
-    zod.object({
-      id: zod.string(),
-      name: zod.string(),
-      email: zod.string(),
-      company: zod.string(),
-      propertyAddress: zod.string(),
-      city: zod.string(),
-      state: zod.string(),
-      country: zod.string(),
-      status: zod.enum(["pending", "enriching", "enriched", "failed"]),
-      createdAt: zod.string(),
-      enrichment: zod
-        .union([
-          zod.object({
-            score: zod.number().describe("0-100 lead score"),
-            tier: zod.enum(["hot", "warm", "cold"]),
-            scoreReasons: zod.array(zod.string()),
-            salesInsights: zod.array(zod.string()),
-            talkingPoints: zod.array(zod.string()),
-            outreachEmail: zod.object({
-              subject: zod.string(),
-              body: zod.string(),
-            }),
-            walkScore: zod.object({
-              walk: zod.number().nullable(),
-              walkDescription: zod.string().nullable(),
-              transit: zod.number().nullable(),
-              transitDescription: zod.string().nullable(),
-              bike: zod.number().nullable(),
-              bikeDescription: zod.string().nullable(),
-            }),
-            census: zod.object({
-              medianHouseholdIncome: zod.number().nullable(),
-              medianGrossRent: zod.number().nullable(),
-              medianHomeValue: zod.number().nullable(),
-              totalPopulation: zod.number().nullable(),
-              renterOccupiedPct: zod.number().nullable(),
-              bachelorsOrHigherPct: zod.number().nullable(),
-              placeName: zod.string().nullable(),
-            }),
-            news: zod.array(
-              zod.object({
-                title: zod.string(),
-                source: zod.string(),
-                url: zod.string(),
-                publishedAt: zod.string(),
-                description: zod.string().nullable(),
+  leads: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        name: zod.string(),
+        email: zod.string(),
+        company: zod.string(),
+        propertyAddress: zod.string(),
+        city: zod.string(),
+        state: zod.string(),
+        country: zod.string(),
+        status: zod.enum(["pending", "enriching", "enriched", "failed"]),
+        createdAt: zod.string(),
+        enrichment: zod
+          .union([
+            zod.object({
+              score: zod.number().describe("0-100 lead score"),
+              tier: zod.enum(["hot", "warm", "cold"]),
+              scoreReasons: zod.array(zod.string()),
+              salesInsights: zod.array(zod.string()),
+              talkingPoints: zod.array(zod.string()),
+              outreachEmail: zod.object({
+                subject: zod.string(),
+                body: zod.string(),
               }),
-            ),
-            enrichedAt: zod.string(),
-            warnings: zod.array(zod.string()),
-          }),
-          zod.null(),
-        ])
-        .optional(),
-      errorMessage: zod.string().nullish(),
-      batchId: zod
-        .string()
-        .nullable()
+              walkScore: zod.object({
+                walk: zod.number().nullable(),
+                walkDescription: zod.string().nullable(),
+                transit: zod.number().nullable(),
+                transitDescription: zod.string().nullable(),
+                bike: zod.number().nullable(),
+                bikeDescription: zod.string().nullable(),
+              }),
+              census: zod.object({
+                medianHouseholdIncome: zod.number().nullable(),
+                medianGrossRent: zod.number().nullable(),
+                medianHomeValue: zod.number().nullable(),
+                totalPopulation: zod.number().nullable(),
+                renterOccupiedPct: zod.number().nullable(),
+                bachelorsOrHigherPct: zod.number().nullable(),
+                placeName: zod.string().nullable(),
+              }),
+              news: zod.array(
+                zod.object({
+                  title: zod.string(),
+                  source: zod.string(),
+                  url: zod.string(),
+                  publishedAt: zod.string(),
+                  description: zod.string().nullable(),
+                }),
+              ),
+              enrichedAt: zod.string(),
+              warnings: zod.array(zod.string()),
+            }),
+            zod.null(),
+          ])
+          .optional(),
+        errorMessage: zod.string().nullish(),
+        batchId: zod
+          .string()
+          .nullable()
+          .describe(
+            "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+          ),
+        batchLabel: zod
+          .string()
+          .nullable()
+          .describe(
+            "Human-readable label for the batch (e.g. file name or timestamp).",
+          ),
+        notes: zod
+          .string()
+          .nullable()
+          .describe("Rep-entered notes or custom context about this lead."),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe(
+            "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+          ),
+        additionalContacts: zod
+          .array(
+            zod.object({
+              name: zod.string(),
+              email: zod.string(),
+              outreachSentAt: zod
+                .string()
+                .nullable()
+                .describe(
+                  "ISO timestamp when outreach was sent to this contact.",
+                ),
+            }),
+          )
+          .describe(
+            "Additional contacts found at the same property address via duplicate detection.",
+          ),
+      }),
+    )
+    .describe("Leads that were successfully created."),
+  skipped: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+      }),
+    )
+    .describe(
+      "Leads skipped because they are exact duplicates (same email already in store).",
+    ),
+  conflicts: zod
+    .array(
+      zod
+        .object({
+          incomingName: zod.string(),
+          incomingEmail: zod.string(),
+          existingLeadId: zod.string(),
+          existingLeadName: zod.string(),
+          existingLeadEmail: zod.string(),
+          propertyAddress: zod.string(),
+        })
         .describe(
-          "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+          "An incoming lead that shares a property address with an existing lead but has a different contact.",
         ),
-      batchLabel: zod
-        .string()
-        .nullable()
-        .describe(
-          "Human-readable label for the batch (e.g. file name or timestamp).",
-        ),
-      notes: zod
-        .string()
-        .nullable()
-        .describe("Rep-entered notes or custom context about this lead."),
-      outreachSentAt: zod
-        .string()
-        .nullable()
-        .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
-        ),
-    }),
-  ),
+    )
+    .describe(
+      "Leads that share a property address with an existing lead but have a different contact — user must decide whether to merge.",
+    ),
 });
 
 /**
@@ -305,7 +367,23 @@ export const SeedSampleLeadsResponse = zod.object({
         .string()
         .nullable()
         .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
+          "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+        ),
+      additionalContacts: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            email: zod.string(),
+            outreachSentAt: zod
+              .string()
+              .nullable()
+              .describe(
+                "ISO timestamp when outreach was sent to this contact.",
+              ),
+          }),
+        )
+        .describe(
+          "Additional contacts found at the same property address via duplicate detection.",
         ),
     }),
   ),
@@ -396,7 +474,23 @@ export const EnrichAllPendingLeadsResponse = zod.object({
         .string()
         .nullable()
         .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
+          "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+        ),
+      additionalContacts: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            email: zod.string(),
+            outreachSentAt: zod
+              .string()
+              .nullable()
+              .describe(
+                "ISO timestamp when outreach was sent to this contact.",
+              ),
+          }),
+        )
+        .describe(
+          "Additional contacts found at the same property address via duplicate detection.",
         ),
     }),
   ),
@@ -485,7 +579,21 @@ export const GetLeadResponse = zod.object({
     .string()
     .nullable()
     .describe(
-      "ISO timestamp when the outreach email was approved and sent by a rep.",
+      "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+    ),
+  additionalContacts: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when outreach was sent to this contact."),
+      }),
+    )
+    .describe(
+      "Additional contacts found at the same property address via duplicate detection.",
     ),
 });
 
@@ -583,7 +691,21 @@ export const UpdateLeadResponse = zod.object({
     .string()
     .nullable()
     .describe(
-      "ISO timestamp when the outreach email was approved and sent by a rep.",
+      "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+    ),
+  additionalContacts: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when outreach was sent to this contact."),
+      }),
+    )
+    .describe(
+      "Additional contacts found at the same property address via duplicate detection.",
     ),
 });
 
@@ -597,6 +719,223 @@ export const DeleteLeadParams = zod.object({
 export const DeleteLeadResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
+});
+
+/**
+ * Used to merge a same-address duplicate — adds the incoming contact to the existing lead's additionalContacts list.
+ * @summary Add an additional contact to an existing lead
+ */
+export const AddContactToLeadParams = zod.object({
+  leadId: zod.coerce.string(),
+});
+
+export const AddContactToLeadBody = zod.object({
+  name: zod.string(),
+  email: zod.string(),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when outreach was sent to this contact."),
+});
+
+export const AddContactToLeadResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  company: zod.string(),
+  propertyAddress: zod.string(),
+  city: zod.string(),
+  state: zod.string(),
+  country: zod.string(),
+  status: zod.enum(["pending", "enriching", "enriched", "failed"]),
+  createdAt: zod.string(),
+  enrichment: zod
+    .union([
+      zod.object({
+        score: zod.number().describe("0-100 lead score"),
+        tier: zod.enum(["hot", "warm", "cold"]),
+        scoreReasons: zod.array(zod.string()),
+        salesInsights: zod.array(zod.string()),
+        talkingPoints: zod.array(zod.string()),
+        outreachEmail: zod.object({
+          subject: zod.string(),
+          body: zod.string(),
+        }),
+        walkScore: zod.object({
+          walk: zod.number().nullable(),
+          walkDescription: zod.string().nullable(),
+          transit: zod.number().nullable(),
+          transitDescription: zod.string().nullable(),
+          bike: zod.number().nullable(),
+          bikeDescription: zod.string().nullable(),
+        }),
+        census: zod.object({
+          medianHouseholdIncome: zod.number().nullable(),
+          medianGrossRent: zod.number().nullable(),
+          medianHomeValue: zod.number().nullable(),
+          totalPopulation: zod.number().nullable(),
+          renterOccupiedPct: zod.number().nullable(),
+          bachelorsOrHigherPct: zod.number().nullable(),
+          placeName: zod.string().nullable(),
+        }),
+        news: zod.array(
+          zod.object({
+            title: zod.string(),
+            source: zod.string(),
+            url: zod.string(),
+            publishedAt: zod.string(),
+            description: zod.string().nullable(),
+          }),
+        ),
+        enrichedAt: zod.string(),
+        warnings: zod.array(zod.string()),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  errorMessage: zod.string().nullish(),
+  batchId: zod
+    .string()
+    .nullable()
+    .describe(
+      "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+    ),
+  batchLabel: zod
+    .string()
+    .nullable()
+    .describe(
+      "Human-readable label for the batch (e.g. file name or timestamp).",
+    ),
+  notes: zod
+    .string()
+    .nullable()
+    .describe("Rep-entered notes or custom context about this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe(
+      "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+    ),
+  additionalContacts: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when outreach was sent to this contact."),
+      }),
+    )
+    .describe(
+      "Additional contacts found at the same property address via duplicate detection.",
+    ),
+});
+
+/**
+ * @summary Update an additional contact's outreachSentAt
+ */
+export const UpdateAdditionalContactParams = zod.object({
+  leadId: zod.coerce.string(),
+});
+
+export const UpdateAdditionalContactBody = zod.object({
+  email: zod.string(),
+  outreachSentAt: zod.string().nullish(),
+});
+
+export const UpdateAdditionalContactResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  company: zod.string(),
+  propertyAddress: zod.string(),
+  city: zod.string(),
+  state: zod.string(),
+  country: zod.string(),
+  status: zod.enum(["pending", "enriching", "enriched", "failed"]),
+  createdAt: zod.string(),
+  enrichment: zod
+    .union([
+      zod.object({
+        score: zod.number().describe("0-100 lead score"),
+        tier: zod.enum(["hot", "warm", "cold"]),
+        scoreReasons: zod.array(zod.string()),
+        salesInsights: zod.array(zod.string()),
+        talkingPoints: zod.array(zod.string()),
+        outreachEmail: zod.object({
+          subject: zod.string(),
+          body: zod.string(),
+        }),
+        walkScore: zod.object({
+          walk: zod.number().nullable(),
+          walkDescription: zod.string().nullable(),
+          transit: zod.number().nullable(),
+          transitDescription: zod.string().nullable(),
+          bike: zod.number().nullable(),
+          bikeDescription: zod.string().nullable(),
+        }),
+        census: zod.object({
+          medianHouseholdIncome: zod.number().nullable(),
+          medianGrossRent: zod.number().nullable(),
+          medianHomeValue: zod.number().nullable(),
+          totalPopulation: zod.number().nullable(),
+          renterOccupiedPct: zod.number().nullable(),
+          bachelorsOrHigherPct: zod.number().nullable(),
+          placeName: zod.string().nullable(),
+        }),
+        news: zod.array(
+          zod.object({
+            title: zod.string(),
+            source: zod.string(),
+            url: zod.string(),
+            publishedAt: zod.string(),
+            description: zod.string().nullable(),
+          }),
+        ),
+        enrichedAt: zod.string(),
+        warnings: zod.array(zod.string()),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  errorMessage: zod.string().nullish(),
+  batchId: zod
+    .string()
+    .nullable()
+    .describe(
+      "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+    ),
+  batchLabel: zod
+    .string()
+    .nullable()
+    .describe(
+      "Human-readable label for the batch (e.g. file name or timestamp).",
+    ),
+  notes: zod
+    .string()
+    .nullable()
+    .describe("Rep-entered notes or custom context about this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe(
+      "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+    ),
+  additionalContacts: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when outreach was sent to this contact."),
+      }),
+    )
+    .describe(
+      "Additional contacts found at the same property address via duplicate detection.",
+    ),
 });
 
 /**
@@ -683,7 +1022,21 @@ export const EnrichLeadResponse = zod.object({
     .string()
     .nullable()
     .describe(
-      "ISO timestamp when the outreach email was approved and sent by a rep.",
+      "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+    ),
+  additionalContacts: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        email: zod.string(),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when outreach was sent to this contact."),
+      }),
+    )
+    .describe(
+      "Additional contacts found at the same property address via duplicate detection.",
     ),
 });
 
@@ -809,7 +1162,23 @@ export const GetLeadStatsResponse = zod.object({
         .string()
         .nullable()
         .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
+          "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+        ),
+      additionalContacts: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            email: zod.string(),
+            outreachSentAt: zod
+              .string()
+              .nullable()
+              .describe(
+                "ISO timestamp when outreach was sent to this contact.",
+              ),
+          }),
+        )
+        .describe(
+          "Additional contacts found at the same property address via duplicate detection.",
         ),
     }),
   ),
@@ -890,7 +1259,23 @@ export const GetLeadStatsResponse = zod.object({
         .string()
         .nullable()
         .describe(
-          "ISO timestamp when the outreach email was approved and sent by a rep.",
+          "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+        ),
+      additionalContacts: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            email: zod.string(),
+            outreachSentAt: zod
+              .string()
+              .nullable()
+              .describe(
+                "ISO timestamp when outreach was sent to this contact.",
+              ),
+          }),
+        )
+        .describe(
+          "Additional contacts found at the same property address via duplicate detection.",
         ),
     }),
   ),

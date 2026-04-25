@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Lead, LeadInput, LeadEnrichment } from "@workspace/api-zod";
+import type { Lead, LeadInput, LeadEnrichment, AdditionalContact } from "@workspace/api-zod";
 
 const leads = new Map<string, Lead>();
 
@@ -12,6 +12,28 @@ export function listLeads(): Lead[] {
 
 export function getLead(id: string): Lead | undefined {
   return leads.get(id);
+}
+
+export function findLeadByEmail(email: string): Lead | undefined {
+  const normalized = email.toLowerCase().trim();
+  return Array.from(leads.values()).find(
+    (l) =>
+      l.email.toLowerCase().trim() === normalized ||
+      l.additionalContacts.some(
+        (c) => c.email.toLowerCase().trim() === normalized,
+      ),
+  );
+}
+
+export function normalizeAddress(addr: string): string {
+  return addr.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+export function findLeadsByAddress(propertyAddress: string): Lead[] {
+  const norm = normalizeAddress(propertyAddress);
+  return Array.from(leads.values()).filter(
+    (l) => normalizeAddress(l.propertyAddress) === norm,
+  );
 }
 
 export function addLead(
@@ -36,9 +58,47 @@ export function addLead(
     batchLabel,
     notes: null,
     outreachSentAt: null,
+    additionalContacts: [],
   };
   leads.set(lead.id, lead);
   return lead;
+}
+
+export function addContactToLead(
+  id: string,
+  contact: AdditionalContact,
+): Lead | undefined {
+  const existing = leads.get(id);
+  if (!existing) return undefined;
+  // Prevent exact duplicate contacts
+  const alreadyExists = existing.additionalContacts.some(
+    (c) => c.email.toLowerCase().trim() === contact.email.toLowerCase().trim(),
+  );
+  if (alreadyExists) return existing;
+  const next: Lead = {
+    ...existing,
+    additionalContacts: [...existing.additionalContacts, contact],
+  };
+  leads.set(id, next);
+  return next;
+}
+
+export function updateAdditionalContactSentAt(
+  id: string,
+  email: string,
+  outreachSentAt: string | null,
+): Lead | undefined {
+  const existing = leads.get(id);
+  if (!existing) return undefined;
+  const norm = email.toLowerCase().trim();
+  const next: Lead = {
+    ...existing,
+    additionalContacts: existing.additionalContacts.map((c) =>
+      c.email.toLowerCase().trim() === norm ? { ...c, outreachSentAt } : c,
+    ),
+  };
+  leads.set(id, next);
+  return next;
 }
 
 export function updateLead(id: string, patch: Partial<Lead>): Lead | undefined {
