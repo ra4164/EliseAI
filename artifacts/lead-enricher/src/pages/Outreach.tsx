@@ -10,36 +10,46 @@ import {
   Mail,
   Send,
   CheckCircle2,
-  Clock,
   Flame,
   ThermometerSun,
   ThermometerSnowflake,
   ExternalLink,
   RotateCcw,
   Plus,
-  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { Lead } from "@workspace/api-client-react";
 
-type FilterMode = "all" | "ready" | "sent";
+type Tier = "hot" | "warm" | "cold";
 
-function TierIcon({ tier }: { tier?: string }) {
-  if (tier === "hot") return <Flame className="h-4 w-4 text-orange-500" />;
-  if (tier === "warm") return <ThermometerSun className="h-4 w-4 text-yellow-500" />;
-  return <ThermometerSnowflake className="h-4 w-4 text-blue-400" />;
-}
-
-function TierBadge({ tier, score }: { tier?: string; score?: number }) {
-  const base = "flex items-center gap-1.5 font-mono text-sm font-bold px-2 py-0.5 rounded border";
-  if (tier === "hot") return <span className={`${base} bg-orange-50 text-orange-700 border-orange-200`}><TierIcon tier={tier} />{score} HOT</span>;
-  if (tier === "warm") return <span className={`${base} bg-yellow-50 text-yellow-700 border-yellow-200`}><TierIcon tier={tier} />{score} WARM</span>;
-  return <span className={`${base} bg-blue-50 text-blue-700 border-blue-200`}><TierIcon tier={tier} />{score} COLD</span>;
-}
+const TIER_META: Record<
+  Tier,
+  { label: string; icon: React.ReactNode; hint: string; color: string }
+> = {
+  hot: {
+    label: "Hot",
+    icon: <Flame className="h-4 w-4 text-orange-500" />,
+    hint: "Score ≥ 75 — Direct & urgent tone. Reference growth signals and recent news. Propose a specific demo time.",
+    color: "text-orange-600",
+  },
+  warm: {
+    label: "Warm",
+    icon: <ThermometerSun className="h-4 w-4 text-yellow-500" />,
+    hint: "Score 50–74 — Value-focused. Lead with market data and RMA ROI. Invite a 15-minute discovery call.",
+    color: "text-yellow-600",
+  },
+  cold: {
+    label: "Cold",
+    icon: <ThermometerSnowflake className="h-4 w-4 text-blue-400" />,
+    hint: "Score < 50 — Soft intro & awareness. Educational angle, no pressure. Plant the seed.",
+    color: "text-blue-600",
+  },
+};
 
 function buildMailtoUrl(lead: Lead): string {
   if (!lead.enrichment?.outreachEmail) return `mailto:${lead.email}`;
@@ -55,10 +65,11 @@ function OutreachCard({ lead }: { lead: Lead }) {
 
   const isSent = !!lead.outreachSentAt;
   const email = lead.enrichment?.outreachEmail;
+  const tier = (lead.enrichment?.tier ?? "cold") as Tier;
+  const meta = TIER_META[tier];
 
   const handleSend = () => {
     window.location.href = buildMailtoUrl(lead);
-    // After opening the email client, mark as sent
     setTimeout(() => {
       updateLead.mutate(
         { leadId: lead.id, data: { outreachSentAt: new Date().toISOString() } },
@@ -85,35 +96,61 @@ function OutreachCard({ lead }: { lead: Lead }) {
   };
 
   return (
-    <Card className={`transition-colors ${isSent ? "opacity-60 bg-muted/30" : "bg-card hover:border-primary/40"}`}>
+    <Card
+      className={`transition-colors ${
+        isSent ? "opacity-55 bg-muted/30" : "bg-card hover:border-primary/40"
+      }`}
+    >
       <CardHeader className="pb-3 pt-4 px-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex flex-col gap-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <TierBadge tier={lead.enrichment?.tier} score={lead.enrichment?.score} />
+              <span
+                className={`flex items-center gap-1 font-mono text-sm font-bold ${meta.color}`}
+              >
+                {meta.icon}
+                {lead.enrichment?.score} {meta.label.toUpperCase()}
+              </span>
               {isSent && (
                 <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Sent {lead.outreachSentAt ? format(new Date(lead.outreachSentAt), "MMM d") : ""}
+                  <CheckCircle2 className="h-3 w-3" />
+                  Sent{" "}
+                  {lead.outreachSentAt
+                    ? format(new Date(lead.outreachSentAt), "MMM d")
+                    : ""}
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="font-semibold text-base text-foreground truncate">{lead.name}</span>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="font-semibold text-base text-foreground">
+                {lead.name}
+              </span>
               <span className="text-muted-foreground text-sm">·</span>
-              <span className="text-sm text-muted-foreground truncate">{lead.company}</span>
+              <span className="text-sm text-muted-foreground">{lead.company}</span>
               <span className="text-muted-foreground text-sm">·</span>
-              <span className="text-sm text-muted-foreground">{lead.city}, {lead.state}</span>
+              <span className="text-sm text-muted-foreground">
+                {lead.city}, {lead.state}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <Link href={`/leads/${lead.id}`}>
-              <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground gap-1.5"
+              >
                 <ExternalLink className="h-3.5 w-3.5" /> Details
               </Button>
             </Link>
             {isSent ? (
-              <Button variant="ghost" size="sm" onClick={handleMarkUnsent} className="gap-1.5 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkUnsent}
+                className="gap-1.5 text-muted-foreground"
+              >
                 <RotateCcw className="h-3.5 w-3.5" /> Unsend
               </Button>
             ) : (
@@ -135,7 +172,9 @@ function OutreachCard({ lead }: { lead: Lead }) {
         <CardContent className="px-5 pb-4 pt-0 space-y-3">
           <div className="bg-muted/40 rounded-md px-4 py-3 text-sm border">
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Subject</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                Subject
+              </span>
               <span className="font-semibold text-foreground">{email.subject}</span>
             </div>
             <p className="text-muted-foreground leading-relaxed line-clamp-2">
@@ -159,70 +198,70 @@ function OutreachCard({ lead }: { lead: Lead }) {
   );
 }
 
+function TierPanel({ leads, tier }: { leads: Lead[]; tier: Tier }) {
+  const meta = TIER_META[tier];
+  const unsent = leads.filter((l) => !l.outreachSentAt).length;
+  const sent = leads.filter((l) => !!l.outreachSentAt).length;
+
+  if (leads.length === 0) {
+    return (
+      <div className="py-16 text-center text-muted-foreground border rounded-lg bg-card/30 border-dashed">
+        <div className="flex justify-center mb-3 opacity-50">{meta.icon}</div>
+        <p className="text-sm">No {meta.label.toLowerCase()} leads enriched yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <p className="text-sm text-muted-foreground italic max-w-xl">{meta.hint}</p>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>{unsent} ready to send</span>
+          {sent > 0 && <span className="text-emerald-600">{sent} sent</span>}
+        </div>
+      </div>
+      <div className="space-y-3">
+        {leads.map((lead) => (
+          <OutreachCard key={lead.id} lead={lead} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Outreach() {
   const { data, isLoading } = useListLeads({
     query: { queryKey: getListLeadsQueryKey() },
   });
-  const [filter, setFilter] = useState<FilterMode>("all");
 
   const allLeads = data?.leads ?? [];
   const enrichedLeads = allLeads
     .filter((l) => l.status === "enriched" && l.enrichment)
     .sort((a, b) => (b.enrichment?.score ?? 0) - (a.enrichment?.score ?? 0));
 
-  const readyCount = enrichedLeads.filter((l) => !l.outreachSentAt).length;
-  const sentCount = enrichedLeads.filter((l) => !!l.outreachSentAt).length;
+  const hotLeads = enrichedLeads.filter((l) => l.enrichment?.tier === "hot");
+  const warmLeads = enrichedLeads.filter((l) => l.enrichment?.tier === "warm");
+  const coldLeads = enrichedLeads.filter((l) => l.enrichment?.tier === "cold");
 
-  const visibleLeads =
-    filter === "ready"
-      ? enrichedLeads.filter((l) => !l.outreachSentAt)
-      : filter === "sent"
-      ? enrichedLeads.filter((l) => !!l.outreachSentAt)
-      : enrichedLeads;
+  const totalUnsent = enrichedLeads.filter((l) => !l.outreachSentAt).length;
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Outreach Queue</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Outreach Queue
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            AI-drafted emails ready to approve and send. Opens your email client pre-filled.
+            AI-drafted emails organized by tier. Opens your email client pre-filled.
+            {totalUnsent > 0 && (
+              <span className="ml-2 text-primary font-medium">
+                {totalUnsent} ready to send
+              </span>
+            )}
           </p>
         </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="text-center py-4">
-          <div className="text-2xl font-bold">{enrichedLeads.length}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Total Enriched</div>
-        </Card>
-        <Card className="text-center py-4 border-primary/30 bg-primary/5">
-          <div className="text-2xl font-bold text-primary">{readyCount}</div>
-          <div className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
-            <Clock className="h-3 w-3" /> Ready to Send
-          </div>
-        </Card>
-        <Card className="text-center py-4 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20">
-          <div className="text-2xl font-bold text-emerald-600">{sentCount}</div>
-          <div className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-emerald-500" /> Sent
-          </div>
-        </Card>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        {(["all", "ready", "sent"] as FilterMode[]).map((f) => (
-          <Button
-            key={f}
-            variant={filter === f ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setFilter(f)}
-            className="capitalize"
-          >
-            {f === "all" ? "All" : f === "ready" ? `Ready (${readyCount})` : `Sent (${sentCount})`}
-          </Button>
-        ))}
       </div>
 
       {isLoading ? (
@@ -238,25 +277,61 @@ export default function Outreach() {
           </div>
           <h3 className="text-lg font-semibold">No enriched leads yet</h3>
           <p className="text-muted-foreground mb-6 max-w-sm">
-            Add leads and enrich them (or wait for the 9 AM auto-run) to generate draft outreach emails.
+            Add leads and enrich them (or wait for the 9 AM auto-run) to generate
+            draft outreach emails.
           </p>
-          <Link href="/leads/new">
+          <Link href="/leads">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Leads
+              Go to Leads
             </Button>
           </Link>
         </div>
-      ) : visibleLeads.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground border rounded-lg bg-card/30">
-          {filter === "sent" ? "No emails sent yet." : "No emails in this category."}
-        </div>
       ) : (
-        <div className="space-y-4">
-          {visibleLeads.map((lead) => (
-            <OutreachCard key={lead.id} lead={lead} />
-          ))}
-        </div>
+        <Tabs defaultValue="hot">
+          <TabsList className="mb-6 gap-1">
+            <TabsTrigger value="hot" className="gap-2">
+              <Flame className="h-3.5 w-3.5 text-orange-500" />
+              Hot
+              <Badge
+                variant="outline"
+                className="ml-1 h-5 px-1.5 text-[11px] bg-orange-50 border-orange-200 text-orange-700"
+              >
+                {hotLeads.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="warm" className="gap-2">
+              <ThermometerSun className="h-3.5 w-3.5 text-yellow-500" />
+              Warm
+              <Badge
+                variant="outline"
+                className="ml-1 h-5 px-1.5 text-[11px] bg-yellow-50 border-yellow-200 text-yellow-700"
+              >
+                {warmLeads.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="cold" className="gap-2">
+              <ThermometerSnowflake className="h-3.5 w-3.5 text-blue-400" />
+              Cold
+              <Badge
+                variant="outline"
+                className="ml-1 h-5 px-1.5 text-[11px] bg-blue-50 border-blue-200 text-blue-700"
+              >
+                {coldLeads.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="hot">
+            <TierPanel leads={hotLeads} tier="hot" />
+          </TabsContent>
+          <TabsContent value="warm">
+            <TierPanel leads={warmLeads} tier="warm" />
+          </TabsContent>
+          <TabsContent value="cold">
+            <TierPanel leads={coldLeads} tier="cold" />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

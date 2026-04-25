@@ -10,6 +10,7 @@ import Leads from "@/pages/Leads";
 import AddLeads from "@/pages/AddLeads";
 import LeadDetail from "@/pages/LeadDetail";
 import Outreach from "@/pages/Outreach";
+import SalesData from "@/pages/SalesData";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/leads" component={Leads} />
           <Route path="/leads/new" component={AddLeads} />
           <Route path="/leads/:leadId" component={LeadDetail} />
+          <Route path="/sales-data" component={SalesData} />
           <Route path="/outreach" component={Outreach} />
           <Route component={NotFound} />
         </Switch>

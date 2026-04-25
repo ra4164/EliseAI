@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Building2, LayoutDashboard, Users, PlusCircle, Mail } from "lucide-react";
+import { Building2, LayoutDashboard, Users, Mail, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useListLeads, getListLeadsQueryKey } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +23,8 @@ export function Navbar() {
   const navLinks = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
     { href: "/leads", label: "Leads", icon: Users, exact: false },
+    { href: "/sales-data", label: "Sales Data", icon: BarChart3, exact: false },
     { href: "/outreach", label: "Outreach", icon: Mail, exact: false, badge: <OutreachBadge /> },
-    { href: "/leads/new", label: "Add Leads", icon: PlusCircle, exact: false },
   ];
 
   return (
