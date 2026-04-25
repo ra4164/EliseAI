@@ -160,6 +160,6 @@ function buildFallbackEmail(
       : "";
   return {
     subject: `Quick idea for ${lead.company}`,
-    body: `Hi ${lead.name.split(" ")[0]},\n\nI was looking at ${lead.company}'s building in ${place} and wanted to reach out. EliseAI is the AI leasing assistant that handles tenant inquiries 24/7 — tours, pricing, follow-ups — so your team can focus on closing.${walkLine}\n\nA lot of multifamily teams we work with cut response times from hours to seconds and lift tour bookings 30%+ in the first quarter.\n\nWorth a quick 15-minute intro next week?\n\n{{REP_NAME}} from EliseAI`,
+    body: `Hi ${lead.name.split(" ")[0]},\n\nI was looking at ${lead.company}'s building in ${place} and wanted to reach out. RMA is the AI leasing assistant that handles tenant inquiries 24/7 — tours, pricing, follow-ups — so your team can focus on closing.${walkLine}\n\nA lot of multifamily teams we work with cut response times from hours to seconds and lift tour bookings 30%+ in the first quarter.\n\nWorth a quick 15-minute intro next week?\n\n{{REP_NAME}} from RMA`,
   };
 }

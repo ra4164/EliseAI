@@ -342,8 +342,11 @@ export default function LeadDetail() {
             <Database className="h-8 w-8 text-primary" />
           </div>
           <h3 className="text-xl font-semibold mb-2">Ready to Enrich</h3>
-          <p className="text-muted-foreground mb-8 text-balance">
-            This lead has not been enriched yet. Run the enrichment process to pull WalkScore data, Census demographics, news articles, and generate an AI-powered outreach email.
+          <p className="text-muted-foreground mb-2 text-balance">
+            Enrichment pulls Census demographics, WalkScore, recent company news, and uses AI to generate a <strong>lead score</strong>, <strong>sales insights</strong>, <strong>talking points</strong>, and a <strong>personalized outreach email</strong>.
+          </p>
+          <p className="text-muted-foreground mb-8 text-sm">
+            This will run automatically at <strong>9:00 AM daily</strong> — or trigger it now.
           </p>
           <Button 
             size="lg" 
@@ -352,7 +355,7 @@ export default function LeadDetail() {
             className="w-full sm:w-auto"
           >
             <Zap className={`mr-2 h-5 w-5 ${enrichLead.isPending || lead.status === 'enriching' ? 'animate-pulse' : 'fill-current'}`} />
-            {enrichLead.isPending || lead.status === 'enriching' ? "Enriching (takes ~15s)..." : "Start Enrichment"}
+            {enrichLead.isPending || lead.status === 'enriching' ? "Enriching (takes ~15s)..." : "Enrich Now"}
           </Button>
         </div>
       )}

@@ -57,12 +57,12 @@ function formatNextRun(iso: string | null): string {
   if (!iso) return "Unknown";
   const next = new Date(iso);
   const now = new Date();
-  const isToday =
-    next.getDate() === now.getDate() &&
-    next.getMonth() === now.getMonth() &&
-    next.getFullYear() === now.getFullYear();
-  const time = next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return isToday ? `Today at ${time}` : `Tomorrow at ${time}`;
+  // Compare calendar dates in UTC (server cron runs in server-local UTC)
+  const nextDay = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth(), next.getUTCDate()));
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const isToday = nextDay.getTime() === todayUTC.getTime();
+  // Always show 9:00 AM — the cron is defined as server-local 9 AM, don't re-convert to local tz
+  return isToday ? "Today at 9:00 AM" : "Tomorrow at 9:00 AM";
 }
 
 function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
@@ -103,6 +103,7 @@ function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="h-4 w-4 shrink-0 text-primary" />
           <span className="font-medium text-foreground">Auto-enriches {schedule.friendlySchedule}</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">— scores leads, drafts outreach emails &amp; sales insights</span>
         </div>
         <div className="flex items-center gap-1 text-muted-foreground">
           <span>Next run:</span>
