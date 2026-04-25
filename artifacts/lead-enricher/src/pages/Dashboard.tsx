@@ -11,7 +11,11 @@ import {
 import {
   useGetLeadStats,
   getGetLeadStatsQueryKey,
+  useGetScheduleStatus,
+  getGetScheduleStatusQueryKey,
+  useTriggerEnrichment,
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import {
   ArrowRight,
@@ -21,6 +25,10 @@ import {
   ThermometerSun,
   Database,
   Plus,
+  Clock,
+  Zap,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -32,11 +40,119 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+
+function formatRelativeTime(iso: string | null): string {
+  if (!iso) return "Never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function formatNextRun(iso: string | null): string {
+  if (!iso) return "Unknown";
+  const next = new Date(iso);
+  const now = new Date();
+  const isToday =
+    next.getDate() === now.getDate() &&
+    next.getMonth() === now.getMonth() &&
+    next.getFullYear() === now.getFullYear();
+  const time = next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return isToday ? `Today at ${time}` : `Tomorrow at ${time}`;
+}
+
+function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
+  const queryClient = useQueryClient();
+  const { data: schedule, isLoading } = useGetScheduleStatus({
+    query: {
+      queryKey: getGetScheduleStatusQueryKey(),
+      refetchInterval: 30_000,
+    },
+  });
+  const trigger = useTriggerEnrichment();
+
+  const handleTrigger = () => {
+    trigger.mutate(undefined, {
+      onSuccess: (res) => {
+        toast.success(
+          res.processed === 0
+            ? "No pending leads to enrich"
+            : `Enrichment complete — ${res.succeeded} succeeded, ${res.failed} failed`,
+        );
+        queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetScheduleStatusQueryKey() });
+        onTrigger();
+      },
+      onError: (err) => {
+        toast.error("Enrichment failed", {
+          description: err instanceof Error ? err.message : "Unknown error",
+        });
+      },
+    });
+  };
+
+  if (isLoading || !schedule) return null;
+
+  return (
+    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-lg border bg-card text-sm flex-wrap">
+      <div className="flex items-center gap-6 flex-wrap">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Clock className="h-4 w-4 shrink-0 text-primary" />
+          <span className="font-medium text-foreground">Auto-enriches {schedule.friendlySchedule}</span>
+        </div>
+        <div className="flex items-center gap-1 text-muted-foreground">
+          <span>Next run:</span>
+          <span className="font-medium text-foreground">{formatNextRun(schedule.nextRunAt)}</span>
+        </div>
+        {schedule.lastRunAt && (
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Last run {formatRelativeTime(schedule.lastRunAt)}</span>
+            {schedule.lastRunSucceeded !== null && (
+              <span>
+                — {schedule.lastRunSucceeded} enriched
+                {schedule.lastRunFailed ? `, ${schedule.lastRunFailed} failed` : ""}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleTrigger}
+        disabled={trigger.isPending || schedule.isRunning}
+        className="shrink-0"
+      >
+        {trigger.isPending || schedule.isRunning ? (
+          <>
+            <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+            Running…
+          </>
+        ) : (
+          <>
+            <Zap className="h-3.5 w-3.5 mr-2" />
+            Run Now
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
   const { data: stats, isLoading } = useGetLeadStats({
     query: { queryKey: getGetLeadStatsQueryKey() },
   });
+
+  const refreshStats = () => {
+    queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+  };
 
   if (isLoading) {
     return (
@@ -70,6 +186,8 @@ export default function Dashboard() {
           </p>
         </div>
 
+        <ScheduleBanner onTrigger={refreshStats} />
+
         <div className="flex flex-col items-center justify-center py-24 text-center border rounded-lg border-dashed bg-card/50">
           <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
             <Database className="h-6 w-6" />
@@ -102,6 +220,8 @@ export default function Dashboard() {
           </p>
         </div>
       </div>
+
+      <ScheduleBanner onTrigger={refreshStats} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>

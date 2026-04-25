@@ -23,7 +23,9 @@ import type {
   Lead,
   LeadList,
   LeadStats,
+  ScheduleStatus,
   SuccessMessage,
+  TriggerResult,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -753,6 +755,164 @@ export const useEnrichLead = <
   TContext
 > => {
   return useMutation(getEnrichLeadMutationOptions(options));
+};
+
+/**
+ * Returns the cron schedule, next run time, last run stats, and whether a run is currently in progress.
+ * @summary Get the auto-enrichment schedule status
+ */
+export const getGetScheduleStatusUrl = () => {
+  return `/api/schedule`;
+};
+
+export const getScheduleStatus = async (
+  options?: RequestInit,
+): Promise<ScheduleStatus> => {
+  return customFetch<ScheduleStatus>(getGetScheduleStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetScheduleStatusQueryKey = () => {
+  return [`/api/schedule`] as const;
+};
+
+export const getGetScheduleStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getScheduleStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getScheduleStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetScheduleStatusQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getScheduleStatus>>
+  > = ({ signal }) => getScheduleStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getScheduleStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetScheduleStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getScheduleStatus>>
+>;
+export type GetScheduleStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the auto-enrichment schedule status
+ */
+
+export function useGetScheduleStatus<
+  TData = Awaited<ReturnType<typeof getScheduleStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getScheduleStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetScheduleStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Runs enrichment immediately (same logic as the 9 AM cron) and returns batch results plus updated schedule status.
+ * @summary Manually trigger enrichment of all pending leads
+ */
+export const getTriggerEnrichmentUrl = () => {
+  return `/api/schedule/trigger`;
+};
+
+export const triggerEnrichment = async (
+  options?: RequestInit,
+): Promise<TriggerResult> => {
+  return customFetch<TriggerResult>(getTriggerEnrichmentUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getTriggerEnrichmentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof triggerEnrichment>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof triggerEnrichment>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["triggerEnrichment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof triggerEnrichment>>,
+    void
+  > = () => {
+    return triggerEnrichment(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TriggerEnrichmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof triggerEnrichment>>
+>;
+
+export type TriggerEnrichmentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Manually trigger enrichment of all pending leads
+ */
+export const useTriggerEnrichment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof triggerEnrichment>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof triggerEnrichment>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getTriggerEnrichmentMutationOptions(options));
 };
 
 /**

@@ -140,6 +140,27 @@ export interface EnrichBatchResult {
   leads: Lead[];
 }
 
+export interface ScheduleStatus {
+  cronExpression: string;
+  friendlySchedule: string;
+  /** @nullable */
+  nextRunAt: string | null;
+  /** @nullable */
+  lastRunAt: string | null;
+  /** @nullable */
+  lastRunSucceeded: number | null;
+  /** @nullable */
+  lastRunFailed: number | null;
+  isRunning: boolean;
+}
+
+export interface TriggerResult {
+  processed: number;
+  succeeded: number;
+  failed: number;
+  schedule: ScheduleStatus;
+}
+
 export type LeadStatsScoreDistributionItem = {
   bucket: string;
   count: number;

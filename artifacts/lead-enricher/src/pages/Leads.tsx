@@ -5,7 +5,7 @@ import {
   getListLeadsQueryKey,
   useEnrichLead,
   useDeleteLead,
-  useEnrichAllPendingLeads,
+  useTriggerEnrichment,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -76,7 +76,7 @@ export default function Leads() {
 
   const enrichLead = useEnrichLead();
   const deleteLead = useDeleteLead();
-  const enrichAll = useEnrichAllPendingLeads();
+  const enrichAll = useTriggerEnrichment();
 
   const handleEnrich = (id: string) => {
     enrichLead.mutate(

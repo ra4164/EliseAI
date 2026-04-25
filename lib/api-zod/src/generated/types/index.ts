@@ -20,5 +20,7 @@ export * from "./leadStatsScoreDistributionItem";
 export * from "./leadStatus";
 export * from "./newsArticle";
 export * from "./outreachEmail";
+export * from "./scheduleStatus";
 export * from "./successMessage";
+export * from "./triggerResult";
 export * from "./walkScoreData";

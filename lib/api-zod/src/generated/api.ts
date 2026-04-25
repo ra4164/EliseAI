@@ -530,6 +530,39 @@ export const EnrichLeadResponse = zod.object({
 });
 
 /**
+ * Returns the cron schedule, next run time, last run stats, and whether a run is currently in progress.
+ * @summary Get the auto-enrichment schedule status
+ */
+export const GetScheduleStatusResponse = zod.object({
+  cronExpression: zod.string(),
+  friendlySchedule: zod.string(),
+  nextRunAt: zod.string().nullable(),
+  lastRunAt: zod.string().nullable(),
+  lastRunSucceeded: zod.number().nullable(),
+  lastRunFailed: zod.number().nullable(),
+  isRunning: zod.boolean(),
+});
+
+/**
+ * Runs enrichment immediately (same logic as the 9 AM cron) and returns batch results plus updated schedule status.
+ * @summary Manually trigger enrichment of all pending leads
+ */
+export const TriggerEnrichmentResponse = zod.object({
+  processed: zod.number(),
+  succeeded: zod.number(),
+  failed: zod.number(),
+  schedule: zod.object({
+    cronExpression: zod.string(),
+    friendlySchedule: zod.string(),
+    nextRunAt: zod.string().nullable(),
+    lastRunAt: zod.string().nullable(),
+    lastRunSucceeded: zod.number().nullable(),
+    lastRunFailed: zod.number().nullable(),
+    isRunning: zod.boolean(),
+  }),
+});
+
+/**
  * Dashboard summary showing total leads, average score, breakdown by tier, and most recent activity.
  * @summary Aggregate stats across the lead pipeline
  */

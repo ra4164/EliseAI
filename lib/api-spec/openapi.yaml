@@ -160,6 +160,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lead"
 
+  /schedule:
+    get:
+      operationId: getScheduleStatus
+      tags: [leads]
+      summary: Get the auto-enrichment schedule status
+      description: Returns the cron schedule, next run time, last run stats, and whether a run is currently in progress.
+      responses:
+        "200":
+          description: Schedule status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduleStatus"
+
+  /schedule/trigger:
+    post:
+      operationId: triggerEnrichment
+      tags: [leads]
+      summary: Manually trigger enrichment of all pending leads
+      description: Runs enrichment immediately (same logic as the 9 AM cron) and returns batch results plus updated schedule status.
+      responses:
+        "200":
+          description: Trigger result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerResult"
+
   /leads/stats:
     get:
       operationId: getLeadStats
@@ -371,6 +399,38 @@ components:
           items:
             $ref: "#/components/schemas/Lead"
       required: [processed, succeeded, failed, leads]
+
+    ScheduleStatus:
+      type: object
+      properties:
+        cronExpression:
+          type: string
+        friendlySchedule:
+          type: string
+        nextRunAt:
+          type: [string, "null"]
+        lastRunAt:
+          type: [string, "null"]
+        lastRunSucceeded:
+          type: [number, "null"]
+        lastRunFailed:
+          type: [number, "null"]
+        isRunning:
+          type: boolean
+      required: [cronExpression, friendlySchedule, nextRunAt, lastRunAt, lastRunSucceeded, lastRunFailed, isRunning]
+
+    TriggerResult:
+      type: object
+      properties:
+        processed:
+          type: number
+        succeeded:
+          type: number
+        failed:
+          type: number
+        schedule:
+          $ref: "#/components/schemas/ScheduleStatus"
+      required: [processed, succeeded, failed, schedule]
 
     LeadStats:
       type: object
