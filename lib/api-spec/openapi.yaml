@@ -3,7 +3,7 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: EliseAI Lead Enrichment API
+  description: RMA Lead Enrichment API
 servers:
   - url: /api
     description: Base API path
@@ -56,6 +56,12 @@ paths:
                   type: array
                   items:
                     $ref: "#/components/schemas/LeadInput"
+                batchId:
+                  type: string
+                  description: Optional batch identifier shared by all leads uploaded together (e.g. via CSV upload).
+                batchLabel:
+                  type: string
+                  description: Optional human-readable label for the batch (e.g. file name).
               required: [leads]
       responses:
         "200":
@@ -334,7 +340,13 @@ components:
             - type: "null"
         errorMessage:
           type: [string, "null"]
-      required: [id, name, email, company, propertyAddress, city, state, country, status, createdAt]
+        batchId:
+          type: [string, "null"]
+          description: Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.
+        batchLabel:
+          type: [string, "null"]
+          description: Human-readable label for the batch (e.g. file name or timestamp).
+      required: [id, name, email, company, propertyAddress, city, state, country, status, createdAt, batchId, batchLabel]
 
     LeadList:
       type: object

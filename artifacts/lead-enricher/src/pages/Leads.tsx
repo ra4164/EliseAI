@@ -1,36 +1,35 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { 
-  useListLeads, 
-  getListLeadsQueryKey, 
-  useEnrichLead, 
+import {
+  useListLeads,
+  getListLeadsQueryKey,
+  useEnrichLead,
   useDeleteLead,
-  useDeleteAllLeads,
-  useSeedSampleLeads,
-  useEnrichAllPendingLeads
+  useEnrichAllPendingLeads,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { 
-  Search, 
-  Plus, 
-  MoreHorizontal, 
-  Zap, 
-  Trash2, 
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Zap,
+  Trash2,
   ExternalLink,
   Filter,
-  Database
+  Users,
+  Download,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,120 +43,249 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { LeadStatus, LeadEnrichmentTier } from "@workspace/api-client-react";
+import { downloadEnrichedCsv } from "@/lib/csv";
+
+const BATCH_COLORS = [
+  "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300 border-violet-200 dark:border-violet-800",
+  "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 border-pink-200 dark:border-pink-800",
+  "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800",
+  "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+  "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-300 border-lime-200 dark:border-lime-800",
+  "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+];
+
+function hashString(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
 
 export default function Leads() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useListLeads({
-    query: {
-      queryKey: getListLeadsQueryKey()
-    }
+    query: { queryKey: getListLeadsQueryKey() },
   });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [batchFilter, setBatchFilter] = useState<string>("all");
 
   const enrichLead = useEnrichLead();
   const deleteLead = useDeleteLead();
   const enrichAll = useEnrichAllPendingLeads();
-  const seedMutation = useSeedSampleLeads();
-  const deleteAll = useDeleteAllLeads();
 
   const handleEnrich = (id: string) => {
-    enrichLead.mutate({ leadId: id }, {
-      onSuccess: () => {
-        toast.success("Enrichment started");
-        queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+    enrichLead.mutate(
+      { leadId: id },
+      {
+        onSuccess: () => {
+          toast.success("Enrichment complete");
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+        },
+        onError: (err) => {
+          toast.error("Failed to enrich lead", {
+            description: err instanceof Error ? err.message : "Unknown error",
+          });
+        },
       },
-      onError: (err) => {
-        toast.error("Failed to enrich lead", {
-          description: err instanceof Error ? err.message : "Unknown error"
-        });
-      }
-    });
+    );
   };
 
   const handleDelete = (id: string) => {
-    deleteLead.mutate({ leadId: id }, {
-      onSuccess: () => {
-        toast.success("Lead deleted");
-        queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+    deleteLead.mutate(
+      { leadId: id },
+      {
+        onSuccess: () => {
+          toast.success("Lead deleted");
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+        },
+        onError: () => {
+          toast.error("Failed to delete lead");
+        },
       },
-      onError: (err) => {
-        toast.error("Failed to delete lead");
-      }
-    });
+    );
   };
 
   const handleEnrichAll = () => {
     enrichAll.mutate(undefined, {
       onSuccess: (res) => {
-        toast.success(`Enrichment complete: ${res.succeeded} succeeded, ${res.failed} failed.`);
+        toast.success(
+          `Enrichment complete: ${res.succeeded} succeeded, ${res.failed} failed.`,
+        );
         queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-      }
-    });
-  };
-
-  const handleSeed = () => {
-    seedMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Sample leads loaded successfully");
-        queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-      }
+      },
+      onError: (err) => {
+        toast.error("Failed to run enrichment", {
+          description: err instanceof Error ? err.message : "Unknown error",
+        });
+      },
     });
   };
 
   const leads = data?.leads || [];
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTier = tierFilter === "all" || lead.enrichment?.tier === tierFilter;
-    const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+  const batches = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const l of leads) {
+      if (l.batchId && !map.has(l.batchId)) {
+        map.set(l.batchId, l.batchLabel || l.batchId.slice(0, 8));
+      }
+    }
+    return Array.from(map.entries()).map(([id, label]) => ({ id, label }));
+  }, [leads]);
 
-    return matchesSearch && matchesTier && matchesStatus;
-  }).sort((a, b) => {
-    const scoreA = a.enrichment?.score || 0;
-    const scoreB = b.enrichment?.score || 0;
-    return scoreB - scoreA;
-  });
+  const filteredLeads = leads
+    .filter((lead) => {
+      const matchesSearch =
+        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.company.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTier =
+        tierFilter === "all" || lead.enrichment?.tier === tierFilter;
+      const matchesStatus =
+        statusFilter === "all" || lead.status === statusFilter;
+      const matchesBatch =
+        batchFilter === "all" || (lead.batchId ?? "") === batchFilter;
+      return matchesSearch && matchesTier && matchesStatus && matchesBatch;
+    })
+    .sort((a, b) => {
+      const scoreA = a.enrichment?.score || 0;
+      const scoreB = b.enrichment?.score || 0;
+      return scoreB - scoreA;
+    });
+
+  const enrichedCount = leads.filter(
+    (l) => l.status === "enriched" && l.enrichment,
+  ).length;
+  const pendingCount = leads.filter(
+    (l) => l.status === "pending" || l.status === "failed",
+  ).length;
+
+  const handleDownload = () => {
+    const enriched = leads.filter((l) => l.status === "enriched" && l.enrichment);
+    if (enriched.length === 0) {
+      toast.error("No enriched leads to export yet");
+      return;
+    }
+    downloadEnrichedCsv(enriched);
+    toast.success(`Exported ${enriched.length} enriched leads`);
+  };
 
   const getTierBadge = (tier?: string) => {
-    switch(tier) {
-      case 'hot': return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">Hot</Badge>;
-      case 'warm': return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800">Warm</Badge>;
-      case 'cold': return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800">Cold</Badge>;
-      default: return <Badge variant="outline">Unscored</Badge>;
+    switch (tier) {
+      case "hot":
+        return (
+          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+            Hot
+          </Badge>
+        );
+      case "warm":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800">
+            Warm
+          </Badge>
+        );
+      case "cold":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800">
+            Cold
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">Unscored</Badge>;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'enriched': return <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">Enriched</Badge>;
-      case 'pending': return <Badge variant="secondary" className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">Pending</Badge>;
-      case 'enriching': return <Badge variant="secondary" className="bg-primary/10 text-primary animate-pulse">Enriching...</Badge>;
-      case 'failed': return <Badge variant="destructive">Failed</Badge>;
-      default: return null;
+    switch (status) {
+      case "enriched":
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+          >
+            Enriched
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
+          >
+            Pending
+          </Badge>
+        );
+      case "enriching":
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-primary/10 text-primary animate-pulse"
+          >
+            Enriching...
+          </Badge>
+        );
+      case "failed":
+        return <Badge variant="destructive">Failed</Badge>;
+      default:
+        return null;
     }
+  };
+
+  const getBatchBadge = (batchId: string | null, batchLabel: string | null) => {
+    if (!batchId) return null;
+    const colorClass = BATCH_COLORS[hashString(batchId) % BATCH_COLORS.length];
+    return (
+      <Badge
+        variant="outline"
+        className={`${colorClass} text-xs font-medium gap-1`}
+        title={batchLabel || ""}
+      >
+        <Layers className="h-3 w-3" />
+        {batchLabel?.split(" (")[0] || batchId.slice(0, 8)}
+      </Badge>
+    );
   };
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Leads</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Leads
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Manage and enrich your inbound pipeline.
+            {leads.length > 0 && (
+              <>
+                {" "}
+                {enrichedCount} enriched · {pendingCount} pending
+              </>
+            )}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {leads.length > 0 && (
-            <Button variant="outline" onClick={handleEnrichAll} disabled={enrichAll.isPending}>
-              <Zap className={`h-4 w-4 mr-2 ${enrichAll.isPending ? 'animate-pulse' : ''}`} />
-              Enrich Pending
+        <div className="flex items-center gap-3 flex-wrap">
+          {pendingCount > 0 && (
+            <Button
+              variant="outline"
+              onClick={handleEnrichAll}
+              disabled={enrichAll.isPending}
+            >
+              <Zap
+                className={`h-4 w-4 mr-2 ${enrichAll.isPending ? "animate-pulse" : ""}`}
+              />
+              {enrichAll.isPending
+                ? "Enriching..."
+                : `Enrich Pending (${pendingCount})`}
+            </Button>
+          )}
+          {enrichedCount > 0 && (
+            <Button variant="outline" onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV
             </Button>
           )}
           <Link href="/leads/new">
@@ -172,18 +300,18 @@ export default function Leads() {
       <div className="flex flex-col sm:flex-row items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by name or company..." 
+          <Input
+            placeholder="Search by name or company..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
-        
+
         <div className="flex items-center gap-4 w-full sm:w-auto overflow-x-auto">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <select 
+            <select
               className="text-sm bg-transparent border-none focus:ring-0 cursor-pointer"
               value={tierFilter}
               onChange={(e) => setTierFilter(e.target.value)}
@@ -194,10 +322,10 @@ export default function Leads() {
               <option value="cold">Cold</option>
             </select>
           </div>
-          
+
           <div className="h-4 w-px bg-border" />
-          
-          <select 
+
+          <select
             className="text-sm bg-transparent border-none focus:ring-0 cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -208,6 +336,27 @@ export default function Leads() {
             <option value="enriched">Enriched</option>
             <option value="failed">Failed</option>
           </select>
+
+          {batches.length > 0 && (
+            <>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
+                <select
+                  className="text-sm bg-transparent border-none focus:ring-0 cursor-pointer"
+                  value={batchFilter}
+                  onChange={(e) => setBatchFilter(e.target.value)}
+                >
+                  <option value="all">All Batches</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -218,6 +367,7 @@ export default function Leads() {
               <TableRow>
                 <TableHead>Lead</TableHead>
                 <TableHead>Location</TableHead>
+                <TableHead>Batch</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -226,11 +376,24 @@ export default function Leads() {
             <TableBody>
               {[...Array(5)].map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell><Skeleton className="h-10 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="h-10 w-48" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-20" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-20" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-16" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-8 w-8 ml-auto" />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -243,17 +406,14 @@ export default function Leads() {
           </div>
           <h3 className="text-lg font-semibold">No leads found</h3>
           <p className="text-muted-foreground mb-6 max-w-sm">
-            Get started by adding some leads manually, or load our curated sample dataset to see EliseAI in action.
+            Get started by adding a lead manually or uploading a CSV.
           </p>
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={handleSeed} disabled={seedMutation.isPending}>
-              <Database className="h-4 w-4 mr-2" />
-              Load Sample Leads
+          <Link href="/leads/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Leads
             </Button>
-            <Link href="/leads/new">
-              <Button>Add Leads Manually</Button>
-            </Link>
-          </div>
+          </Link>
         </div>
       ) : (
         <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
@@ -262,6 +422,7 @@ export default function Leads() {
               <TableRow className="bg-muted/50">
                 <TableHead>Lead</TableHead>
                 <TableHead>Location</TableHead>
+                <TableHead>Batch</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -270,7 +431,7 @@ export default function Leads() {
             <TableBody>
               <AnimatePresence>
                 {filteredLeads.map((lead, index) => (
-                  <motion.tr 
+                  <motion.tr
                     key={lead.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -280,20 +441,36 @@ export default function Leads() {
                   >
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-foreground">{lead.name}</span>
-                        <span className="text-sm text-muted-foreground">{lead.company}</span>
+                        <span className="font-semibold text-foreground">
+                          {lead.name}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {lead.company}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{lead.city}, {lead.state}</span>
+                      <span className="text-sm">
+                        {lead.city}, {lead.state}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(lead.status)}
+                      {getBatchBadge(
+                        lead.batchId ?? null,
+                        lead.batchLabel ?? null,
+                      ) || (
+                        <span className="text-muted-foreground text-xs">
+                          Single
+                        </span>
+                      )}
                     </TableCell>
+                    <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell>
-                      {lead.status === 'enriched' ? (
+                      {lead.status === "enriched" ? (
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-medium text-lg">{lead.enrichment?.score}</span>
+                          <span className="font-mono font-medium text-lg">
+                            {lead.enrichment?.score}
+                          </span>
                           {getTierBadge(lead.enrichment?.tier)}
                         </div>
                       ) : (
@@ -303,7 +480,10 @@ export default function Leads() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100">
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                          >
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -316,19 +496,26 @@ export default function Leads() {
                               Open details
                             </DropdownMenuItem>
                           </Link>
-                          {(lead.status === 'pending' || lead.status === 'failed') && (
-                            <DropdownMenuItem 
+                          {(lead.status === "pending" ||
+                            lead.status === "failed") && (
+                            <DropdownMenuItem
                               className="cursor-pointer"
-                              onClick={(e) => { e.preventDefault(); handleEnrich(lead.id); }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleEnrich(lead.id);
+                              }}
                             >
                               <Zap className="h-4 w-4 mr-2 text-primary" />
                               Enrich now
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive focus:bg-destructive/10 cursor-pointer"
-                            onClick={(e) => { e.preventDefault(); handleDelete(lead.id); }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDelete(lead.id);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete lead
@@ -341,7 +528,7 @@ export default function Leads() {
               </AnimatePresence>
             </TableBody>
           </Table>
-          
+
           {filteredLeads.length === 0 && (
             <div className="py-12 text-center text-muted-foreground">
               No leads match your current filters.
@@ -352,6 +539,3 @@ export default function Leads() {
     </div>
   );
 }
-
-// Add a quick fix for missing Users icon
-import { Users } from "lucide-react";

@@ -1,15 +1,6 @@
 import { Router, type IRouter } from "express";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
-
-const LeadInputSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  company: z.string().min(1),
-  propertyAddress: z.string().min(1),
-  city: z.string().min(1),
-  state: z.string().min(1),
-  country: z.string().min(1),
-});
 import {
   addLead,
   clearLeads,
@@ -25,11 +16,23 @@ import { enrichLead } from "../lib/enrich";
 import { SAMPLE_LEADS } from "../lib/sample-leads";
 import type { Lead, LeadStats } from "@workspace/api-zod";
 
-const router: IRouter = Router();
+const LeadInputSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  company: z.string().min(1),
+  propertyAddress: z.string().min(1),
+  city: z.string().min(1),
+  state: z.string().min(1),
+  country: z.string().min(1),
+});
 
 const CreateBody = z.object({
   leads: z.array(LeadInputSchema).min(1),
+  batchId: z.string().optional(),
+  batchLabel: z.string().optional(),
 });
+
+const router: IRouter = Router();
 
 router.get("/leads", (_req, res) => {
   res.json({ leads: listLeads() });
@@ -41,7 +44,15 @@ router.post("/leads", (req, res) => {
     res.status(400).json({ error: parsed.error.format() });
     return;
   }
-  const created = parsed.data.leads.map((l) => addLead(l));
+  const { leads: input } = parsed.data;
+  // If multiple leads, automatically tag them with a shared batch id so
+  // they can be visually grouped and exported together later.
+  const isBatch = input.length > 1;
+  const batchId = parsed.data.batchId ?? (isBatch ? randomUUID() : null);
+  const batchLabel = parsed.data.batchLabel ?? (isBatch
+    ? `Batch ${new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} (${input.length} leads)`
+    : null);
+  const created = input.map((l) => addLead(l, batchId, batchLabel));
   res.json({ leads: created });
 });
 
@@ -52,7 +63,9 @@ router.delete("/leads", (_req, res) => {
 
 router.post("/leads/seed", (_req, res) => {
   clearLeads();
-  const created = SAMPLE_LEADS.map((l) => addLead(l));
+  const batchId = randomUUID();
+  const batchLabel = `Sample dataset (${SAMPLE_LEADS.length} leads)`;
+  const created = SAMPLE_LEADS.map((l) => addLead(l, batchId, batchLabel));
   res.json({ leads: created });
 });
 

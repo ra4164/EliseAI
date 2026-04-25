@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "EliseAI Lead Enricher"
+title = "RMA Lead Enricher"
 version = "1.0.0"
 id = "artifacts/lead-enricher"
 router = "path"

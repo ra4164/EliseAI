@@ -9,7 +9,6 @@ import Dashboard from "@/pages/Dashboard";
 import Leads from "@/pages/Leads";
 import AddLeads from "@/pages/AddLeads";
 import LeadDetail from "@/pages/LeadDetail";
-import Plan from "@/pages/Plan";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -24,7 +23,6 @@ function Router() {
           <Route path="/leads" component={Leads} />
           <Route path="/leads/new" component={AddLeads} />
           <Route path="/leads/:leadId" component={LeadDetail} />
-          <Route path="/plan" component={Plan} />
           <Route component={NotFound} />
         </Switch>
       </main>

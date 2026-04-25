@@ -14,7 +14,11 @@ export function getLead(id: string): Lead | undefined {
   return leads.get(id);
 }
 
-export function addLead(input: LeadInput): Lead {
+export function addLead(
+  input: LeadInput,
+  batchId: string | null = null,
+  batchLabel: string | null = null,
+): Lead {
   const lead: Lead = {
     id: randomUUID(),
     name: input.name,
@@ -28,6 +32,8 @@ export function addLead(input: LeadInput): Lead {
     createdAt: new Date().toISOString(),
     enrichment: null,
     errorMessage: null,
+    batchId,
+    batchLabel,
   };
   leads.set(lead.id, lead);
   return lead;
