@@ -408,20 +408,19 @@ export default function AddLeads() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4 mb-8">
+    <div className="p-8 max-w-4xl mx-auto space-y-5">
+      <div className="flex items-center gap-3">
         <Link href="/leads">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-xl border transition-colors"
+            style={{ background: "#ffffff", borderColor: "#EAECF0", color: "#6B7280" }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Leads</h1>
-          <p className="text-muted-foreground mt-1">
-            Add a single lead, paste a list, or upload a CSV file. Bulk uploads
-            are tagged as a batch so you can group them later.
-          </p>
-        </div>
+        <p className="text-sm" style={{ color: "#898989" }}>
+          Add a single lead, paste a list, or upload a CSV. Bulk uploads are tagged as a batch.
+        </p>
       </div>
 
       <Tabs defaultValue="single" className="w-full">

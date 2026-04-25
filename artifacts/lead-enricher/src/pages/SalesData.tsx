@@ -153,35 +153,35 @@ export default function SalesData() {
   ];
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Sales Data</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Enriched lead metrics — scores, location signals, and market data at a glance.
-          </p>
+    <div className="p-8 space-y-5">
+      {/* Subtitle + filter row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <p className="text-sm" style={{ color: "#898989" }}>
+          Enriched lead metrics — scores, location signals, and market data at a glance.
+        </p>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Filter className="h-4 w-4 shrink-0" style={{ color: "#898989" }} />
+          {tierButtons.map(({ key, label, count, icon }) => (
+            <button
+              key={key}
+              onClick={() => setTierFilter(key)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all"
+              style={
+                tierFilter === key
+                  ? { background: "#4880FF", color: "#ffffff" }
+                  : { background: "#F5F6FA", color: "#898989" }
+              }
+            >
+              {icon}
+              {label}
+              <span className="text-xs opacity-70">({count})</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        {tierButtons.map(({ key, label, count, icon }) => (
-          <Button
-            key={key}
-            variant={tierFilter === key ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setTierFilter(key)}
-            className={`gap-1.5 ${tierFilter === key ? "font-semibold" : "text-muted-foreground"}`}
-          >
-            {icon}
-            {label}
-            <span className="text-xs opacity-70">({count})</span>
-          </Button>
-        ))}
-      </div>
-
       {isLoading ? (
-        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -202,33 +202,41 @@ export default function SalesData() {
           </Table>
         </div>
       ) : enrichedLeads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center border rounded-lg border-dashed bg-card/50">
-          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-            <BarChart3 className="h-6 w-6" />
+        <div
+          className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border-2 border-dashed"
+          style={{ borderColor: "#EAECF0", background: "#ffffff" }}
+        >
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#4880FF" }}>
+            <BarChart3 className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold">No enriched leads yet</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm">
+          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No enriched leads yet</h3>
+          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#898989" }}>
             Add leads and enrich them to see their sales data here.
           </p>
           <Link href="/leads">
-            <Button variant="outline">Go to Leads</Button>
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "#4880FF" }}
+            >
+              Go to Leads
+            </button>
           </Link>
         </div>
       ) : (
-        <div className="bg-card rounded-lg border shadow-sm overflow-x-auto">
+        <div className="rounded-2xl overflow-x-auto" style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}>
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="min-w-[180px]">Lead</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead className="min-w-[90px]">Walk Score</TableHead>
-                <TableHead className="min-w-[90px]">Transit</TableHead>
-                <TableHead>Renter %</TableHead>
-                <TableHead>Median Rent</TableHead>
-                <TableHead>News</TableHead>
-                <TableHead className="text-right min-w-[120px]">Outreach</TableHead>
+              <TableRow style={{ background: "#F5F6FA" }}>
+                <TableHead className="min-w-[180px]" style={{ color: "#898989" }}>Lead</TableHead>
+                <TableHead style={{ color: "#898989" }}>Location</TableHead>
+                <TableHead style={{ color: "#898989" }}>Score</TableHead>
+                <TableHead style={{ color: "#898989" }}>Tier</TableHead>
+                <TableHead className="min-w-[90px]" style={{ color: "#898989" }}>Walk Score</TableHead>
+                <TableHead className="min-w-[90px]" style={{ color: "#898989" }}>Transit</TableHead>
+                <TableHead style={{ color: "#898989" }}>Renter %</TableHead>
+                <TableHead style={{ color: "#898989" }}>Median Rent</TableHead>
+                <TableHead style={{ color: "#898989" }}>News</TableHead>
+                <TableHead className="text-right min-w-[120px]" style={{ color: "#898989" }}>Outreach</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

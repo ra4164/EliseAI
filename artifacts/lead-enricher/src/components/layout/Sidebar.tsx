@@ -10,7 +10,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useListLeads, getListLeadsQueryKey } from "@workspace/api-client-react";
-import { Badge } from "@/components/ui/badge";
 
 function UnsentBadge() {
   const { data } = useListLeads({ query: { queryKey: getListLeadsQueryKey() } });
@@ -19,7 +18,7 @@ function UnsentBadge() {
   ).length;
   if (count === 0) return null;
   return (
-    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground px-1">
+    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#4880FF] text-[10px] font-bold text-white px-1">
       {count}
     </span>
   );
@@ -42,22 +41,31 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="flex flex-col w-[220px] shrink-0 border-r border-border bg-card h-screen sticky top-0 overflow-y-auto z-30">
+    <aside
+      className="flex flex-col w-[260px] shrink-0 h-screen sticky top-0 overflow-y-auto z-30"
+      style={{ background: "#202224" }}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-border shrink-0">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Building2 className="h-4 w-4" />
+      <div className="flex items-center gap-3 px-6 h-[70px] shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm"
+          style={{ background: "#4880FF" }}
+        >
+          <Building2 className="h-5 w-5" />
         </div>
         <div>
-          <span className="font-bold text-sm tracking-tight text-foreground">RMA</span>
-          <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Lead Enricher</p>
+          <span className="font-bold text-[15px] text-white tracking-tight">RMA</span>
+          <p className="text-[11px] leading-none mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>Lead Enricher</p>
         </div>
       </div>
 
       {/* Add Leads shortcut */}
-      <div className="px-3 pt-4 pb-2">
+      <div className="px-4 pt-5 pb-2">
         <Link href="/leads/new">
-          <button className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors">
+          <button
+            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            style={{ background: "#4880FF" }}
+          >
             <Plus className="h-4 w-4" />
             Add Leads
             <ChevronRight className="h-3.5 w-3.5 ml-auto opacity-70" />
@@ -66,8 +74,11 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 space-y-0.5">
-        <p className="px-3 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <nav className="flex-1 px-4 py-2 space-y-0.5">
+        <p
+          className="px-3 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "rgba(255,255,255,0.35)" }}
+        >
           Menu
         </p>
         {NAV_MAIN.map((item) => {
@@ -79,16 +90,30 @@ export function Sidebar() {
           return (
             <Link key={item.href} href={item.href}>
               <button
-                className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all ${
-                  isActive
-                    ? "bg-primary/10 text-primary font-semibold"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
+                className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  isActive ? "text-white font-semibold" : "hover:opacity-90"
                 }`}
+                style={
+                  isActive
+                    ? { background: "#4880FF", color: "#ffffff" }
+                    : { color: "rgba(255,255,255,0.6)" }
+                }
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.07)";
+                    (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.9)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.6)";
+                  }
+                }}
               >
                 <Icon
-                  className={`h-4 w-4 shrink-0 transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                  }`}
+                  className="h-[18px] w-[18px] shrink-0"
+                  style={{ color: isActive ? "#ffffff" : "rgba(255,255,255,0.6)" }}
                 />
                 {item.label}
                 {item.badge}
@@ -99,14 +124,28 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 pb-4 pt-2 border-t border-border mt-auto shrink-0">
-        <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground font-medium transition-all">
-          <Settings className="h-4 w-4 shrink-0" />
+      <div
+        className="px-4 pb-5 pt-3 mt-auto shrink-0"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <button
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+          style={{ color: "rgba(255,255,255,0.6)" }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.07)";
+            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.9)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.6)";
+          }}
+        >
+          <Settings className="h-[18px] w-[18px] shrink-0" style={{ color: "rgba(255,255,255,0.6)" }} />
           Settings
         </button>
         <div className="mt-3 px-3">
-          <p className="text-[10px] text-muted-foreground">RMA Lead Enricher</p>
-          <p className="text-[10px] text-muted-foreground/60">Internal Sales Tool</p>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>RMA Lead Enricher</p>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>Internal Sales Tool</p>
         </div>
       </div>
     </aside>

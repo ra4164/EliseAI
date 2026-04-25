@@ -251,53 +251,53 @@ export default function Leads() {
   };
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto space-y-6">
+    <div className="p-8 space-y-5">
+      {/* Page action bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Leads
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Manage and enrich your inbound pipeline.
-            {leads.length > 0 && (
-              <>
-                {" "}
-                {enrichedCount} enriched · {pendingCount} pending
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <p className="text-sm" style={{ color: "#898989" }}>
+          {leads.length > 0
+            ? `${enrichedCount} enriched · ${pendingCount} pending`
+            : "Manage and enrich your inbound pipeline."}
+        </p>
+        <div className="flex items-center gap-2.5 flex-wrap">
           {pendingCount > 0 && (
-            <Button
-              variant="outline"
+            <button
               onClick={handleEnrichAll}
               disabled={enrichAll.isPending}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:opacity-80 disabled:opacity-60"
+              style={{ background: "#F5F6FA", color: "#202224", borderColor: "#EAECF0" }}
             >
-              <Zap
-                className={`h-4 w-4 mr-2 ${enrichAll.isPending ? "animate-pulse" : ""}`}
-              />
-              {enrichAll.isPending
-                ? "Enriching..."
-                : `Enrich Pending (${pendingCount})`}
-            </Button>
+              <Zap className={`h-4 w-4 ${enrichAll.isPending ? "animate-pulse" : ""}`} style={{ color: "#4880FF" }} />
+              {enrichAll.isPending ? "Enriching..." : `Enrich Pending (${pendingCount})`}
+            </button>
           )}
           {enrichedCount > 0 && (
-            <Button variant="outline" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:opacity-80"
+              style={{ background: "#F5F6FA", color: "#202224", borderColor: "#EAECF0" }}
+            >
+              <Download className="h-4 w-4" style={{ color: "#4880FF" }} />
               Download CSV
-            </Button>
+            </button>
           )}
           <Link href="/leads/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+              style={{ background: "#4880FF" }}
+            >
+              <Plus className="h-4 w-4" />
               Add Leads
-            </Button>
+            </button>
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
+      {/* Filter bar */}
+      <div
+        className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl"
+        style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+      >
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -361,7 +361,7 @@ export default function Leads() {
       </div>
 
       {isLoading ? (
-        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -400,32 +400,44 @@ export default function Leads() {
           </Table>
         </div>
       ) : leads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center border rounded-lg border-dashed bg-card/50">
-          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-            <Users className="h-6 w-6" />
+        <div
+          className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border-2 border-dashed"
+          style={{ borderColor: "#EAECF0", background: "#ffffff" }}
+        >
+          <div
+            className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white"
+            style={{ background: "#4880FF" }}
+          >
+            <Users className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold">No leads found</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm">
+          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No leads found</h3>
+          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#898989" }}>
             Get started by adding a lead manually or uploading a CSV.
           </p>
           <Link href="/leads/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "#4880FF" }}
+            >
+              <Plus className="h-4 w-4" />
               Add Leads
-            </Button>
+            </button>
           </Link>
         </div>
       ) : (
-        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Lead</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Batch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+              <TableRow style={{ background: "#F5F6FA" }}>
+                <TableHead style={{ color: "#898989" }}>Lead</TableHead>
+                <TableHead style={{ color: "#898989" }}>Location</TableHead>
+                <TableHead style={{ color: "#898989" }}>Batch</TableHead>
+                <TableHead style={{ color: "#898989" }}>Status</TableHead>
+                <TableHead style={{ color: "#898989" }}>Score</TableHead>
+                <TableHead className="text-right" style={{ color: "#898989" }}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

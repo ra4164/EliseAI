@@ -350,21 +350,19 @@ export default function Outreach() {
   const totalUnsent = enrichedLeads.filter((l) => !l.outreachSentAt).length;
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Outreach Queue
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            AI-drafted emails organized by tier. Opens your email client pre-filled.
-            {totalUnsent > 0 && (
-              <span className="ml-2 text-primary font-medium">
-                {totalUnsent} ready to send
-              </span>
-            )}
-          </p>
-        </div>
+    <div className="p-8 space-y-5">
+      <div className="flex items-center gap-2">
+        <p className="text-sm" style={{ color: "#898989" }}>
+          AI-drafted emails organized by tier. Opens your email client pre-filled.
+        </p>
+        {totalUnsent > 0 && (
+          <span
+            className="ml-1 text-xs font-semibold px-2.5 py-0.5 rounded-full"
+            style={{ background: "#E8F0FE", color: "#4880FF" }}
+          >
+            {totalUnsent} ready to send
+          </span>
+        )}
       </div>
 
       {isLoading ? (
@@ -374,20 +372,26 @@ export default function Outreach() {
           ))}
         </div>
       ) : enrichedLeads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center border rounded-lg border-dashed bg-card/50">
-          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-            <Mail className="h-6 w-6" />
+        <div
+          className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border-2 border-dashed"
+          style={{ borderColor: "#EAECF0", background: "#ffffff" }}
+        >
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#4880FF" }}>
+            <Mail className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold">No enriched leads yet</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm">
+          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No enriched leads yet</h3>
+          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#898989" }}>
             Add leads and enrich them (or wait for the 9 AM auto-run) to generate
             draft outreach emails.
           </p>
           <Link href="/leads">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "#4880FF" }}
+            >
+              <Plus className="h-4 w-4" />
               Go to Leads
-            </Button>
+            </button>
           </Link>
         </div>
       ) : (

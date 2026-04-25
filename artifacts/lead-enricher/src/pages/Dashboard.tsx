@@ -98,49 +98,56 @@ function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
   if (isLoading || !schedule) return null;
 
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-lg border bg-card text-sm flex-wrap">
-      <div className="flex items-center gap-6 flex-wrap">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4 shrink-0 text-primary" />
-          <span className="font-medium text-foreground">Auto-enriches {schedule.friendlySchedule}</span>
-          <span className="text-xs text-muted-foreground hidden sm:inline">— scores leads, drafts outreach emails &amp; sales insights</span>
+    <div
+      className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl text-sm flex-wrap"
+      style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+    >
+      <div className="flex items-center gap-5 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#E8F0FE" }}>
+            <Clock className="h-4 w-4" style={{ color: "#4880FF" }} />
+          </div>
+          <div>
+            <span className="font-semibold" style={{ color: "#202224" }}>
+              Auto-enriches {schedule.friendlySchedule}
+            </span>
+            <span className="ml-1 hidden sm:inline" style={{ color: "#898989" }}>
+              — scores leads, drafts outreach &amp; sales insights
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-1 text-muted-foreground">
+        <div className="flex items-center gap-1" style={{ color: "#898989" }}>
           <span>Next run:</span>
-          <span className="font-medium text-foreground">{formatNextRun(schedule.nextRunAt)}</span>
+          <span className="font-semibold ml-1" style={{ color: "#202224" }}>{formatNextRun(schedule.nextRunAt)}</span>
         </div>
         {schedule.lastRunAt && (
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+          <div className="flex items-center gap-1" style={{ color: "#898989" }}>
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: "#22C55E" }} />
             <span>Last run {formatRelativeTime(schedule.lastRunAt)}</span>
             {schedule.lastRunSucceeded !== null && (
-              <span>
-                — {schedule.lastRunSucceeded} enriched
-                {schedule.lastRunFailed ? `, ${schedule.lastRunFailed} failed` : ""}
-              </span>
+              <span>— {schedule.lastRunSucceeded} enriched{schedule.lastRunFailed ? `, ${schedule.lastRunFailed} failed` : ""}</span>
             )}
           </div>
         )}
       </div>
-      <Button
-        variant="outline"
-        size="sm"
+      <button
         onClick={handleTrigger}
         disabled={trigger.isPending || schedule.isRunning}
-        className="shrink-0"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 shrink-0"
+        style={{ background: "#4880FF" }}
       >
         {trigger.isPending || schedule.isRunning ? (
           <>
-            <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
             Running…
           </>
         ) : (
           <>
-            <Zap className="h-3.5 w-3.5 mr-2" />
+            <Zap className="h-3.5 w-3.5" />
             Run Now
           </>
         )}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -177,29 +184,22 @@ export default function Dashboard() {
   // Empty state — no leads uploaded yet, show real "0" stats only.
   if (stats.total === 0) {
     return (
-      <div className="p-8 max-w-[1600px] mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Pipeline Overview
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Upload leads to start seeing real enrichment stats.
-          </p>
-        </div>
-
+      <div className="p-8 space-y-6">
         <ScheduleBanner onTrigger={refreshStats} />
-
-        <div className="flex flex-col items-center justify-center py-24 text-center border rounded-lg border-dashed bg-card/50">
-          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-            <Database className="h-6 w-6" />
+        <div className="flex flex-col items-center justify-center py-24 text-center border rounded-2xl border-dashed bg-card">
+          <div
+            className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white"
+            style={{ background: "#4880FF" }}
+          >
+            <Database className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold">No leads yet</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm">
+          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No leads yet</h3>
+          <p className="text-muted-foreground mb-6 max-w-sm mt-1 text-sm">
             Stats appear here as you upload and enrich leads. Add a single lead
             manually, or upload a CSV to start a batch.
           </p>
           <Link href="/leads/new">
-            <Button>
+            <Button style={{ background: "#4880FF" }} className="text-white hover:opacity-90">
               <Plus className="h-4 w-4 mr-2" />
               Add Leads
             </Button>
@@ -210,194 +210,194 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Pipeline Overview
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Monitor enrichment status and lead quality distribution.
-          </p>
+    <div className="p-8 space-y-6">
+      <ScheduleBanner onTrigger={refreshStats} />
+
+      {/* Stat Cards — DashStack style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Total Leads */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Total Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.total}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>{stats.pendingCount} pending enrichment</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F0FE" }}>
+            <Activity className="h-6 w-6" style={{ color: "#4880FF" }} />
+          </div>
+        </div>
+
+        {/* Hot Leads */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Hot Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.hotCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Score ≥ 75</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF0E6" }}>
+            <Flame className="h-6 w-6" style={{ color: "#FF6B35" }} />
+          </div>
+        </div>
+
+        {/* Warm Leads */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Warm Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.warmCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Score 50–74</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF9E6" }}>
+            <ThermometerSun className="h-6 w-6" style={{ color: "#FFC107" }} />
+          </div>
+        </div>
+
+        {/* Cold Leads */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Cold Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.coldCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Score &lt; 50</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F5FF" }}>
+            <ThermometerSnowflake className="h-6 w-6" style={{ color: "#2196F3" }} />
+          </div>
         </div>
       </div>
 
-      <ScheduleBanner onTrigger={refreshStats} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Leads</span>
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Activity className="h-4 w-4 text-primary" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold tracking-tight">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1.5">
-              {stats.pendingCount} pending enrichment
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hot Leads</span>
-              <div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                <Flame className="h-4 w-4 text-orange-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold tracking-tight">{stats.hotCount}</div>
-            <p className="text-xs text-muted-foreground mt-1.5">Score ≥ 75</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Warm Leads</span>
-              <div className="h-8 w-8 rounded-lg bg-yellow-100 flex items-center justify-center">
-                <ThermometerSun className="h-4 w-4 text-yellow-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold tracking-tight">{stats.warmCount}</div>
-            <p className="text-xs text-muted-foreground mt-1.5">Score 50–74</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Cold Leads</span>
-              <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                <ThermometerSnowflake className="h-4 w-4 text-blue-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold tracking-tight">{stats.coldCount}</div>
-            <p className="text-xs text-muted-foreground mt-1.5">Score &lt; 50</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Score Distribution</CardTitle>
-            <CardDescription>
-              Breakdown of lead scores across the pipeline. Average score:{" "}
-              <span className="font-semibold text-foreground">
+        {/* Score Distribution Chart */}
+        <div
+          className="lg:col-span-2 rounded-2xl p-6"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div className="mb-1">
+            <h3 className="font-semibold text-base" style={{ color: "#202224" }}>Score Distribution</h3>
+            <p className="text-sm mt-0.5" style={{ color: "#898989" }}>
+              Lead scores across the pipeline · Avg:{" "}
+              <span className="font-semibold" style={{ color: "#202224" }}>
                 {stats.averageScore.toFixed(1)}
               </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pl-0 h-[300px]">
+            </p>
+          </div>
+          <div className="h-[280px] mt-4">
             {stats.enrichedCount === 0 ? (
-              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-sm" style={{ color: "#898989" }}>
                 Enrich leads to see the score distribution.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={stats.scoreDistribution}
-                  margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 10 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="hsl(var(--border))"
-                  />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                   <XAxis
                     dataKey="bucket"
                     axisLine={false}
                     tickLine={false}
-                    tick={{
-                      fontSize: 12,
-                      fill: "hsl(var(--muted-foreground))",
-                    }}
-                    dy={10}
+                    tick={{ fontSize: 12, fill: "#898989" }}
+                    dy={8}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{
-                      fontSize: 12,
-                      fill: "hsl(var(--muted-foreground))",
-                    }}
+                    tick={{ fontSize: 12, fill: "#898989" }}
                   />
                   <Tooltip
-                    cursor={{ fill: "hsl(var(--muted)/0.4)" }}
+                    cursor={{ fill: "rgba(72,128,255,0.06)" }}
                     contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      borderColor: "hsl(var(--border))",
-                      borderRadius: "var(--radius)",
-                      color: "hsl(var(--popover-foreground))",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#EAECF0",
+                      borderRadius: "12px",
+                      color: "#202224",
+                      fontSize: "13px",
                     }}
                   />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                     {stats.scoreDistribution.map((entry, index) => {
                       const bucketValue = parseInt(entry.bucket.split("-")[0]!);
-                      let color = "hsl(var(--chart-5))";
-                      if (bucketValue >= 75) color = "hsl(var(--chart-3))";
-                      else if (bucketValue >= 50) color = "hsl(var(--chart-4))";
+                      let color = "#4880FF";
+                      if (bucketValue >= 75) color = "#FF6B35";
+                      else if (bucketValue >= 50) color = "#FFC107";
                       return <Cell key={`cell-${index}`} fill={color} />;
                     })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Leads</CardTitle>
-            <CardDescription>
-              Highest scoring prospects in the pipeline
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.topLeads.length > 0 ? (
-              <div className="space-y-4">
-                {stats.topLeads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex items-center justify-between group"
-                  >
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="font-medium truncate">{lead.name}</span>
-                      <span className="text-xs text-muted-foreground truncate">
-                        {lead.company}
-                      </span>
+        {/* Top Leads */}
+        <div
+          className="rounded-2xl p-6"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div className="mb-4">
+            <h3 className="font-semibold text-base" style={{ color: "#202224" }}>Top Leads</h3>
+            <p className="text-sm mt-0.5" style={{ color: "#898989" }}>Highest scoring prospects</p>
+          </div>
+          {stats.topLeads.length > 0 ? (
+            <div className="space-y-3">
+              {stats.topLeads.map((lead) => (
+                <div
+                  key={lead.id}
+                  className="flex items-center justify-between gap-3 group py-2 px-3 rounded-xl transition-colors"
+                  style={{ background: "transparent" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "#F5F6FA"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ background: "#4880FF" }}
+                    >
+                      {lead.name[0]}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        variant="secondary"
-                        className="font-mono bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-none"
-                      >
-                        {lead.enrichment?.score}
-                      </Badge>
-                      <Link href={`/leads/${lead.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate" style={{ color: "#202224" }}>{lead.name}</p>
+                      <p className="text-xs truncate" style={{ color: "#898989" }}>{lead.company}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-3 py-12 text-muted-foreground">
-                <Database className="h-8 w-8 opacity-20" />
-                <p className="text-sm">No enriched leads yet.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: "#FFF0E6", color: "#FF6B35" }}
+                    >
+                      {lead.enrichment?.score}
+                    </span>
+                    <Link href={`/leads/${lead.id}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Database className="h-8 w-8 mb-3" style={{ color: "#D0D5DD" }} />
+              <p className="text-sm" style={{ color: "#898989" }}>No enriched leads yet.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

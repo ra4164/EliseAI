@@ -39,3 +39,26 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - **Additional contacts**: `additionalContacts[]` on Lead; POST `/leads/:id/contacts` to merge; per-contact outreach send in Outreach page
 - **9 AM cron auto-enrichment** + manual enrich-all trigger
 - **In-memory store** (Map); no database required for the Lead Enricher artifact
+
+## DashStack UI Design System
+
+Exact DashStack tokens applied across all pages:
+
+| Token | Value |
+|---|---|
+| Primary | `#4880FF` |
+| Sidebar background | `#202224` (dark navy) |
+| Page background | `#F5F6FA` |
+| Card background | `#ffffff` |
+| Card shadow | `0px 4px 20px 0px rgba(0,0,0,0.06)` |
+| Card border-radius | `16px` (rounded-2xl) |
+| Font | Inter |
+| Label text | `#898989` |
+| Heading text | `#202224` |
+| Header border | `#EAECF0` |
+| Header height | `70px` |
+| Sidebar width | `260px` |
+
+**Stat card icon colors**: blue `#E8F0FE` (total), orange `#FFF0E6` (hot), yellow `#FFF9E6` (warm), light blue `#E8F5FF` (cold)
+
+**Layout**: `Sidebar (260px fixed) + [TopHeader (70px) + main content]`; TopHeader shows page title + search/bell/avatar icons
