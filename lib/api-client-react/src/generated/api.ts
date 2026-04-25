@@ -26,6 +26,7 @@ import type {
   ScheduleStatus,
   SuccessMessage,
   TriggerResult,
+  UpdateLeadBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -587,6 +588,93 @@ export function useGetLead<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update a lead's mutable fields (notes, outreachSentAt)
+ */
+export const getUpdateLeadUrl = (leadId: string) => {
+  return `/api/leads/${leadId}`;
+};
+
+export const updateLead = async (
+  leadId: string,
+  updateLeadBody: UpdateLeadBody,
+  options?: RequestInit,
+): Promise<Lead> => {
+  return customFetch<Lead>(getUpdateLeadUrl(leadId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateLeadBody),
+  });
+};
+
+export const getUpdateLeadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLead>>,
+    TError,
+    { leadId: string; data: BodyType<UpdateLeadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateLead>>,
+  TError,
+  { leadId: string; data: BodyType<UpdateLeadBody> },
+  TContext
+> => {
+  const mutationKey = ["updateLead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateLead>>,
+    { leadId: string; data: BodyType<UpdateLeadBody> }
+  > = (props) => {
+    const { leadId, data } = props ?? {};
+
+    return updateLead(leadId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateLeadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateLead>>
+>;
+export type UpdateLeadMutationBody = BodyType<UpdateLeadBody>;
+export type UpdateLeadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a lead's mutable fields (notes, outreachSentAt)
+ */
+export const useUpdateLead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLead>>,
+    TError,
+    { leadId: string; data: BodyType<UpdateLeadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateLead>>,
+  TError,
+  { leadId: string; data: BodyType<UpdateLeadBody> },
+  TContext
+> => {
+  return useMutation(getUpdateLeadMutationOptions(options));
+};
 
 /**
  * @summary Delete a lead

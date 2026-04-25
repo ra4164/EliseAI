@@ -23,4 +23,5 @@ export * from "./outreachEmail";
 export * from "./scheduleStatus";
 export * from "./successMessage";
 export * from "./triggerResult";
+export * from "./updateLeadBody";
 export * from "./walkScoreData";

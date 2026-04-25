@@ -14,6 +14,7 @@ export interface GeminiInsightInput {
     Lead,
     "name" | "email" | "company" | "propertyAddress" | "city" | "state" | "country"
   >;
+  repNotes?: string | null;
   walk: WalkScoreData;
   census: CensusData;
   news: NewsArticle[];
@@ -39,7 +40,7 @@ RMA sells AI leasing assistants to multifamily property managers, owners, and op
 
 Weaker leads are: rural properties, single-family-only operators, very small companies with no online footprint, or signals of layoffs/contraction.
 
-You will receive a lead, public data about the building's location, and recent news about the company. Your job is to:
+You will receive a lead, public data about the building's location, recent news, and optionally rep notes (CRM context, meeting notes, deal stage). If rep notes are provided, use them to make the email and talking points more specific and personalized. Your job is to:
 1. Suggest a numeric adjustment (-20 to +20) to the heuristic score and explain why in 2-4 short bullet reasons.
 2. Produce 3-5 SALES INSIGHTS — concrete, useful facts a rep should know before calling.
 3. Produce 3-5 TALKING POINTS — specific things the rep can mention on a call.
@@ -54,6 +55,7 @@ export async function generateInsights(
 
   const userContent = JSON.stringify({
     lead: input.lead,
+    repNotes: input.repNotes || null,
     locationContext: {
       walkScore: input.walk,
       demographics: input.census,

@@ -58,6 +58,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
       state: lead.state,
       country: lead.country,
     },
+    repNotes: lead.notes,
     walk,
     census,
     news,

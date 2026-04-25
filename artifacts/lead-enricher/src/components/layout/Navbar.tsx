@@ -1,14 +1,30 @@
 import { Link, useLocation } from "wouter";
-import { Building2, LayoutDashboard, Users, PlusCircle } from "lucide-react";
+import { Building2, LayoutDashboard, Users, PlusCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useListLeads, getListLeadsQueryKey } from "@workspace/api-client-react";
+import { Badge } from "@/components/ui/badge";
+
+function OutreachBadge() {
+  const { data } = useListLeads({ query: { queryKey: getListLeadsQueryKey() } });
+  const unsentCount = (data?.leads ?? []).filter(
+    (l) => l.status === "enriched" && l.enrichment && !l.outreachSentAt,
+  ).length;
+  if (unsentCount === 0) return null;
+  return (
+    <Badge className="ml-1 h-4 min-w-4 px-1 text-[10px] bg-primary text-primary-foreground rounded-full">
+      {unsentCount}
+    </Badge>
+  );
+}
 
 export function Navbar() {
   const [location] = useLocation();
 
   const navLinks = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/leads", label: "Leads", icon: Users },
-    { href: "/leads/new", label: "Add Leads", icon: PlusCircle },
+    { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { href: "/leads", label: "Leads", icon: Users, exact: false },
+    { href: "/outreach", label: "Outreach", icon: Mail, exact: false, badge: <OutreachBadge /> },
+    { href: "/leads/new", label: "Add Leads", icon: PlusCircle, exact: false },
   ];
 
   return (
@@ -27,9 +43,9 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              const isActive =
-                location === link.href ||
-                (link.href !== "/" && location.startsWith(link.href));
+              const isActive = link.exact
+                ? location === link.href
+                : location === link.href || location.startsWith(link.href + "/");
 
               return (
                 <Link key={link.href} href={link.href}>
@@ -40,6 +56,7 @@ export function Navbar() {
                   >
                     <Icon className="h-4 w-4" />
                     {link.label}
+                    {link.badge}
                   </Button>
                 </Link>
               );

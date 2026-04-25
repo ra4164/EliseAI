@@ -89,6 +89,16 @@ export const ListLeadsResponse = zod.object({
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
         ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
+        ),
     }),
   ),
 });
@@ -191,6 +201,16 @@ export const CreateLeadsResponse = zod.object({
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
         ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
+        ),
     }),
   ),
 });
@@ -277,6 +297,16 @@ export const SeedSampleLeadsResponse = zod.object({
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
         ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
+        ),
     }),
   ),
 });
@@ -358,6 +388,16 @@ export const EnrichAllPendingLeadsResponse = zod.object({
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
         ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
+        ),
     }),
   ),
 });
@@ -436,6 +476,114 @@ export const GetLeadResponse = zod.object({
     .nullable()
     .describe(
       "Human-readable label for the batch (e.g. file name or timestamp).",
+    ),
+  notes: zod
+    .string()
+    .nullable()
+    .describe("Rep-entered notes or custom context about this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe(
+      "ISO timestamp when the outreach email was approved and sent by a rep.",
+    ),
+});
+
+/**
+ * @summary Update a lead's mutable fields (notes, outreachSentAt)
+ */
+export const UpdateLeadParams = zod.object({
+  leadId: zod.coerce.string(),
+});
+
+export const UpdateLeadBody = zod.object({
+  notes: zod
+    .string()
+    .optional()
+    .describe("Rep notes \/ custom context for this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullish()
+    .describe("ISO timestamp when outreach was sent. Pass null to un-mark."),
+});
+
+export const UpdateLeadResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  company: zod.string(),
+  propertyAddress: zod.string(),
+  city: zod.string(),
+  state: zod.string(),
+  country: zod.string(),
+  status: zod.enum(["pending", "enriching", "enriched", "failed"]),
+  createdAt: zod.string(),
+  enrichment: zod
+    .union([
+      zod.object({
+        score: zod.number().describe("0-100 lead score"),
+        tier: zod.enum(["hot", "warm", "cold"]),
+        scoreReasons: zod.array(zod.string()),
+        salesInsights: zod.array(zod.string()),
+        talkingPoints: zod.array(zod.string()),
+        outreachEmail: zod.object({
+          subject: zod.string(),
+          body: zod.string(),
+        }),
+        walkScore: zod.object({
+          walk: zod.number().nullable(),
+          walkDescription: zod.string().nullable(),
+          transit: zod.number().nullable(),
+          transitDescription: zod.string().nullable(),
+          bike: zod.number().nullable(),
+          bikeDescription: zod.string().nullable(),
+        }),
+        census: zod.object({
+          medianHouseholdIncome: zod.number().nullable(),
+          medianGrossRent: zod.number().nullable(),
+          medianHomeValue: zod.number().nullable(),
+          totalPopulation: zod.number().nullable(),
+          renterOccupiedPct: zod.number().nullable(),
+          bachelorsOrHigherPct: zod.number().nullable(),
+          placeName: zod.string().nullable(),
+        }),
+        news: zod.array(
+          zod.object({
+            title: zod.string(),
+            source: zod.string(),
+            url: zod.string(),
+            publishedAt: zod.string(),
+            description: zod.string().nullable(),
+          }),
+        ),
+        enrichedAt: zod.string(),
+        warnings: zod.array(zod.string()),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  errorMessage: zod.string().nullish(),
+  batchId: zod
+    .string()
+    .nullable()
+    .describe(
+      "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+    ),
+  batchLabel: zod
+    .string()
+    .nullable()
+    .describe(
+      "Human-readable label for the batch (e.g. file name or timestamp).",
+    ),
+  notes: zod
+    .string()
+    .nullable()
+    .describe("Rep-entered notes or custom context about this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe(
+      "ISO timestamp when the outreach email was approved and sent by a rep.",
     ),
 });
 
@@ -526,6 +674,16 @@ export const EnrichLeadResponse = zod.object({
     .nullable()
     .describe(
       "Human-readable label for the batch (e.g. file name or timestamp).",
+    ),
+  notes: zod
+    .string()
+    .nullable()
+    .describe("Rep-entered notes or custom context about this lead."),
+  outreachSentAt: zod
+    .string()
+    .nullable()
+    .describe(
+      "ISO timestamp when the outreach email was approved and sent by a rep.",
     ),
 });
 
@@ -643,6 +801,16 @@ export const GetLeadStatsResponse = zod.object({
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
         ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
+        ),
     }),
   ),
   recentlyEnriched: zod.array(
@@ -713,6 +881,16 @@ export const GetLeadStatsResponse = zod.object({
         .nullable()
         .describe(
           "Human-readable label for the batch (e.g. file name or timestamp).",
+        ),
+      notes: zod
+        .string()
+        .nullable()
+        .describe("Rep-entered notes or custom context about this lead."),
+      outreachSentAt: zod
+        .string()
+        .nullable()
+        .describe(
+          "ISO timestamp when the outreach email was approved and sent by a rep.",
         ),
     }),
   ),

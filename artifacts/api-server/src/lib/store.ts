@@ -34,6 +34,8 @@ export function addLead(
     errorMessage: null,
     batchId,
     batchLabel,
+    notes: null,
+    outreachSentAt: null,
   };
   leads.set(lead.id, lead);
   return lead;

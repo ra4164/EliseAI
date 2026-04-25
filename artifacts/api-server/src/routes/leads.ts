@@ -11,6 +11,7 @@ import {
   setEnriching,
   setEnrichment,
   setFailed,
+  updateLead,
 } from "../lib/store";
 import { enrichLead } from "../lib/enrich";
 import { SAMPLE_LEADS } from "../lib/sample-leads";
@@ -157,6 +158,31 @@ router.get("/leads/:leadId", (req, res) => {
     return;
   }
   res.json(lead);
+});
+
+const UpdateBody = z.object({
+  notes: z.string().optional(),
+  outreachSentAt: z.string().nullable().optional(),
+});
+
+router.patch("/leads/:leadId", (req, res) => {
+  const id = req.params["leadId"]!;
+  const existing = getLead(id);
+  if (!existing) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+  const parsed = UpdateBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const patch: Partial<typeof existing> = {};
+  if (parsed.data.notes !== undefined) patch.notes = parsed.data.notes;
+  if (parsed.data.outreachSentAt !== undefined)
+    patch.outreachSentAt = parsed.data.outreachSentAt;
+  const updated = updateLead(id, patch);
+  res.json(updated);
 });
 
 router.delete("/leads/:leadId", (req, res) => {

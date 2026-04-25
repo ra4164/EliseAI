@@ -32,4 +32,14 @@ export interface Lead {
    * @nullable
    */
   batchLabel: string | null;
+  /**
+   * Rep-entered notes or custom context about this lead.
+   * @nullable
+   */
+  notes: string | null;
+  /**
+   * ISO timestamp when the outreach email was approved and sent by a rep.
+   * @nullable
+   */
+  outreachSentAt: string | null;
 }

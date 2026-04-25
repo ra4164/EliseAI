@@ -127,6 +127,16 @@ export interface Lead {
    * @nullable
    */
   batchLabel: string | null;
+  /**
+   * Rep-entered notes or custom context about this lead.
+   * @nullable
+   */
+  notes: string | null;
+  /**
+   * ISO timestamp when the outreach email was approved and sent by a rep.
+   * @nullable
+   */
+  outreachSentAt: string | null;
 }
 
 export interface LeadList {
@@ -138,6 +148,16 @@ export interface EnrichBatchResult {
   succeeded: number;
   failed: number;
   leads: Lead[];
+}
+
+export interface UpdateLeadBody {
+  /** Rep notes / custom context for this lead. */
+  notes?: string;
+  /**
+   * ISO timestamp when outreach was sent. Pass null to un-mark.
+   * @nullable
+   */
+  outreachSentAt?: string | null;
 }
 
 export interface ScheduleStatus {
