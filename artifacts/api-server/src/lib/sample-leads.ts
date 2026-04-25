@@ -1,0 +1,58 @@
+import type { LeadInput } from "@workspace/api-zod";
+
+export const SAMPLE_LEADS: LeadInput[] = [
+  {
+    name: "Maya Chen",
+    email: "maya.chen@equityresidential.com",
+    company: "Equity Residential",
+    propertyAddress: "350 W Mart Center Dr",
+    city: "Chicago",
+    state: "IL",
+    country: "USA",
+  },
+  {
+    name: "Daniel Rivera",
+    email: "drivera@avaloncommunities.com",
+    company: "AvalonBay Communities",
+    propertyAddress: "100 W 31st St",
+    city: "New York",
+    state: "NY",
+    country: "USA",
+  },
+  {
+    name: "Priya Patel",
+    email: "ppatel@greystar.com",
+    company: "Greystar Real Estate Partners",
+    propertyAddress: "1700 Pacific Ave",
+    city: "Dallas",
+    state: "TX",
+    country: "USA",
+  },
+  {
+    name: "Marcus Johnson",
+    email: "mjohnson@camdenliving.com",
+    company: "Camden Property Trust",
+    propertyAddress: "11 Greenway Plaza",
+    city: "Houston",
+    state: "TX",
+    country: "USA",
+  },
+  {
+    name: "Sarah Lindqvist",
+    email: "slindqvist@udr.com",
+    company: "UDR Inc",
+    propertyAddress: "1745 Shea Center Dr",
+    city: "Highlands Ranch",
+    state: "CO",
+    country: "USA",
+  },
+  {
+    name: "Tomás García",
+    email: "tgarcia@essexapartmenthomes.com",
+    company: "Essex Property Trust",
+    propertyAddress: "1100 Park Pl",
+    city: "San Mateo",
+    state: "CA",
+    country: "USA",
+  },
+];

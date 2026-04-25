@@ -1,2 +1,18 @@
 export * from "./generated/api";
-export * from "./generated/types";
+export type {
+  CensusData,
+  EnrichBatchResult,
+  HealthStatus,
+  Lead,
+  LeadEnrichment,
+  LeadEnrichmentTier,
+  LeadInput,
+  LeadList,
+  LeadStats,
+  LeadStatsScoreDistributionItem,
+  LeadStatus,
+  NewsArticle,
+  OutreachEmail,
+  SuccessMessage,
+  WalkScoreData,
+} from "./generated/types";

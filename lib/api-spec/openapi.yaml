@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: EliseAI Lead Enrichment API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: leads
+    description: Lead management and enrichment
 paths:
   /healthz:
     get:
@@ -24,6 +26,148 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List all leads
+      description: Returns all leads (enriched and pending) sorted by most recent first
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+    post:
+      operationId: createLeads
+      tags: [leads]
+      summary: Create leads
+      description: Add new lead rows. They start in 'pending' state and can be enriched.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                leads:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/LeadInput"
+              required: [leads]
+      responses:
+        "200":
+          description: Created leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+    delete:
+      operationId: deleteAllLeads
+      tags: [leads]
+      summary: Delete all leads
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /leads/seed:
+    post:
+      operationId: seedSampleLeads
+      tags: [leads]
+      summary: Load a curated set of sample leads
+      description: Replaces all leads with a curated sample set covering several U.S. cities and property managers.
+      responses:
+        "200":
+          description: Seeded sample leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+
+  /leads/enrich-all:
+    post:
+      operationId: enrichAllPendingLeads
+      tags: [leads]
+      summary: Run enrichment on every pending lead
+      description: Triggers enrichment for all leads currently in 'pending' state. This is the main "Run Daily" button.
+      responses:
+        "200":
+          description: Enrichment completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrichBatchResult"
+
+  /leads/{leadId}:
+    parameters:
+      - name: leadId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get a single lead by id
+      responses:
+        "200":
+          description: Lead detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    delete:
+      operationId: deleteLead
+      tags: [leads]
+      summary: Delete a lead
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /leads/{leadId}/enrich:
+    parameters:
+      - name: leadId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: enrichLead
+      tags: [leads]
+      summary: Enrich a single lead
+      description: Re-runs all data sources and AI generation for the lead.
+      responses:
+        "200":
+          description: Enriched lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/stats:
+    get:
+      operationId: getLeadStats
+      tags: [leads]
+      summary: Aggregate stats across the lead pipeline
+      description: Dashboard summary showing total leads, average score, breakdown by tier, and most recent activity.
+      responses:
+        "200":
+          description: Pipeline statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadStats"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +175,224 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success, message]
+
+    LeadInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        company:
+          type: string
+        propertyAddress:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+      required: [name, email, company, propertyAddress, city, state, country]
+
+    NewsArticle:
+      type: object
+      properties:
+        title:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+        publishedAt:
+          type: string
+        description:
+          type: [string, "null"]
+      required: [title, source, url, publishedAt, description]
+
+    WalkScoreData:
+      type: object
+      properties:
+        walk:
+          type: [number, "null"]
+        walkDescription:
+          type: [string, "null"]
+        transit:
+          type: [number, "null"]
+        transitDescription:
+          type: [string, "null"]
+        bike:
+          type: [number, "null"]
+        bikeDescription:
+          type: [string, "null"]
+      required: [walk, walkDescription, transit, transitDescription, bike, bikeDescription]
+
+    CensusData:
+      type: object
+      properties:
+        medianHouseholdIncome:
+          type: [number, "null"]
+        medianGrossRent:
+          type: [number, "null"]
+        medianHomeValue:
+          type: [number, "null"]
+        totalPopulation:
+          type: [number, "null"]
+        renterOccupiedPct:
+          type: [number, "null"]
+        bachelorsOrHigherPct:
+          type: [number, "null"]
+        placeName:
+          type: [string, "null"]
+      required: [medianHouseholdIncome, medianGrossRent, medianHomeValue, totalPopulation, renterOccupiedPct, bachelorsOrHigherPct, placeName]
+
+    OutreachEmail:
+      type: object
+      properties:
+        subject:
+          type: string
+        body:
+          type: string
+      required: [subject, body]
+
+    LeadEnrichment:
+      type: object
+      properties:
+        score:
+          type: number
+          description: 0-100 lead score
+        tier:
+          type: string
+          enum: [hot, warm, cold]
+        scoreReasons:
+          type: array
+          items:
+            type: string
+        salesInsights:
+          type: array
+          items:
+            type: string
+        talkingPoints:
+          type: array
+          items:
+            type: string
+        outreachEmail:
+          $ref: "#/components/schemas/OutreachEmail"
+        walkScore:
+          $ref: "#/components/schemas/WalkScoreData"
+        census:
+          $ref: "#/components/schemas/CensusData"
+        news:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsArticle"
+        enrichedAt:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+      required: [score, tier, scoreReasons, salesInsights, talkingPoints, outreachEmail, walkScore, census, news, enrichedAt, warnings]
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        company:
+          type: string
+        propertyAddress:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        status:
+          type: string
+          enum: [pending, enriching, enriched, failed]
+        createdAt:
+          type: string
+        enrichment:
+          oneOf:
+            - $ref: "#/components/schemas/LeadEnrichment"
+            - type: "null"
+        errorMessage:
+          type: [string, "null"]
+      required: [id, name, email, company, propertyAddress, city, state, country, status, createdAt]
+
+    LeadList:
+      type: object
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+      required: [leads]
+
+    EnrichBatchResult:
+      type: object
+      properties:
+        processed:
+          type: number
+        succeeded:
+          type: number
+        failed:
+          type: number
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+      required: [processed, succeeded, failed, leads]
+
+    LeadStats:
+      type: object
+      properties:
+        total:
+          type: number
+        enrichedCount:
+          type: number
+        pendingCount:
+          type: number
+        averageScore:
+          type: number
+        hotCount:
+          type: number
+        warmCount:
+          type: number
+        coldCount:
+          type: number
+        topLeads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        recentlyEnriched:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        scoreDistribution:
+          type: array
+          items:
+            type: object
+            properties:
+              bucket:
+                type: string
+              count:
+                type: number
+            required: [bucket, count]
+      required: [total, enrichedCount, pendingCount, averageScore, hotCount, warmCount, coldCount, topLeads, recentlyEnriched, scoreDistribution]
