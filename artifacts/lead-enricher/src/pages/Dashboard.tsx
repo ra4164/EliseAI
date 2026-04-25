@@ -224,50 +224,58 @@ export default function Dashboard() {
 
       <ScheduleBanner onTrigger={refreshStats} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card className="shadow-sm hover:shadow transition-shadow">
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Leads</span>
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Activity className="h-4 w-4 text-primary" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold tracking-tight">{stats.total}</div>
+            <p className="text-xs text-muted-foreground mt-1.5">
               {stats.pendingCount} pending enrichment
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hot Leads</CardTitle>
-            <Flame className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.hotCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Score &gt;= 75</p>
+        <Card className="shadow-sm hover:shadow transition-shadow">
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hot Leads</span>
+              <div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                <Flame className="h-4 w-4 text-orange-500" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold tracking-tight">{stats.hotCount}</div>
+            <p className="text-xs text-muted-foreground mt-1.5">Score ≥ 75</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Warm Leads</CardTitle>
-            <ThermometerSun className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.warmCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Score 50-74</p>
+        <Card className="shadow-sm hover:shadow transition-shadow">
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Warm Leads</span>
+              <div className="h-8 w-8 rounded-lg bg-yellow-100 flex items-center justify-center">
+                <ThermometerSun className="h-4 w-4 text-yellow-500" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold tracking-tight">{stats.warmCount}</div>
+            <p className="text-xs text-muted-foreground mt-1.5">Score 50–74</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cold Leads</CardTitle>
-            <ThermometerSnowflake className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.coldCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Score &lt; 50</p>
+        <Card className="shadow-sm hover:shadow transition-shadow">
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Cold Leads</span>
+              <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <ThermometerSnowflake className="h-4 w-4 text-blue-500" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold tracking-tight">{stats.coldCount}</div>
+            <p className="text-xs text-muted-foreground mt-1.5">Score &lt; 50</p>
           </CardContent>
         </Card>
       </div>

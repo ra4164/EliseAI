@@ -2,7 +2,7 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Navbar } from "@/components/layout/Navbar";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
@@ -17,9 +17,9 @@ const queryClient = new QueryClient();
 
 function Router() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      <main className="flex-1 overflow-auto">
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <main className="flex-1 overflow-auto min-w-0">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/leads" component={Leads} />
