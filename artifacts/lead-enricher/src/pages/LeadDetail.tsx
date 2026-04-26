@@ -245,6 +245,11 @@ export default function LeadDetail() {
                 <option value="call_booked">Call Booked</option>
                 <option value="lost">Lost</option>
               </select>
+              {lead.funnelStatusUpdatedAt && (
+                <span className="text-xs" style={{ color: "#898989" }}>
+                  Updated {format(new Date(lead.funnelStatusUpdatedAt), "MMM d, yyyy 'at' h:mm a")}
+                </span>
+              )}
             </div>
           </div>
 

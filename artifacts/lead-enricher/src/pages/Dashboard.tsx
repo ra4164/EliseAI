@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -45,6 +46,65 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import type { Lead } from "@workspace/api-client-react";
+
+function StaleLeadsPanel({ staleLeads }: { staleLeads: Lead[] }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: "#FFF8E6", border: "1px solid #FDECC0" }}
+    >
+      <button
+        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FEF3C7" }}>
+            <AlertTriangle className="h-4 w-4" style={{ color: "#D97706" }} />
+          </div>
+          <div>
+            <span className="font-semibold text-sm" style={{ color: "#92400E" }}>
+              Needs Review — {staleLeads.length} stale lead{staleLeads.length > 1 ? "s" : ""}
+            </span>
+            <span className="ml-2 text-xs font-normal" style={{ color: "#B45309" }}>
+              Contacted 3+ days ago with no status update
+            </span>
+          </div>
+        </div>
+        <ArrowRight
+          className="h-4 w-4 shrink-0 transition-transform"
+          style={{ color: "#D97706", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 space-y-2 border-t" style={{ borderColor: "#FDECC0" }}>
+          {staleLeads.map((lead) => (
+            <Link href={`/leads/${lead.id}`} key={lead.id}>
+              <div
+                className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
+                style={{ background: "transparent" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "#FEF3C7"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-7 w-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: "#D97706" }}>
+                    {lead.name[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate" style={{ color: "#92400E" }}>{lead.name}</p>
+                    <p className="text-xs truncate" style={{ color: "#B45309" }}>{lead.company}</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" style={{ color: "#D97706" }} />
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatRelativeTime(iso: string | null): string {
   if (!iso) return "Never";
@@ -217,36 +277,9 @@ export default function Dashboard() {
     <div className="p-8 space-y-6">
       <ScheduleBanner onTrigger={refreshStats} />
 
-      {/* Stale leads alert */}
+      {/* Stale leads — Needs Review panel */}
       {stats.staleLeads.length > 0 && (
-        <div
-          className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl flex-wrap"
-          style={{ background: "#FFF8E6", border: "1px solid #FDECC0" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FEF3C7" }}>
-              <AlertTriangle className="h-4 w-4" style={{ color: "#D97706" }} />
-            </div>
-            <div>
-              <span className="font-semibold text-sm" style={{ color: "#92400E" }}>
-                {stats.staleLeads.length} stale lead{stats.staleLeads.length > 1 ? "s" : ""} — no reply in 3+ days
-              </span>
-              <span className="ml-2 text-sm" style={{ color: "#B45309" }}>
-                {stats.staleLeads.slice(0, 3).map((l) => l.name).join(", ")}
-                {stats.staleLeads.length > 3 ? ` +${stats.staleLeads.length - 3} more` : ""}
-              </span>
-            </div>
-          </div>
-          <Link href="/outreach">
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border shrink-0"
-              style={{ background: "#FEF3C7", color: "#92400E", borderColor: "#FDECC0" }}
-            >
-              <Send className="h-3.5 w-3.5" />
-              Review in Outreach
-            </button>
-          </Link>
-        </div>
+        <StaleLeadsPanel staleLeads={stats.staleLeads} />
       )}
 
       {/* Stat Cards — DashStack style */}
