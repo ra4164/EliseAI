@@ -48,6 +48,8 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
 
   const base = computeBaseScore({ walk, census, news });
 
+  const baseTier = tierFromScore(base.score);
+
   let aiInsights = await generateInsights({
     lead: {
       name: lead.name,
@@ -64,6 +66,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
     news,
     baseScore: base.score,
     baseReasons: base.reasons,
+    tier: baseTier,
   });
 
   if (!aiInsights) {
@@ -151,16 +154,25 @@ function buildFallbackTalkingPoints(
 
 function buildFallbackEmail(
   lead: Lead,
-  census: { placeName: string | null },
+  census: { placeName: string | null; medianGrossRent: number | null; renterOccupiedPct: number | null },
   walk: { walk: number | null },
 ): { subject: string; body: string } {
+  const firstName = lead.name.split(" ")[0];
   const place = census.placeName ?? lead.city;
-  const walkLine =
-    walk.walk !== null
-      ? ` We work with a lot of operators in walkable, high-volume markets like yours.`
-      : "";
+
+  let hook: string;
+  if (census.renterOccupiedPct !== null && census.renterOccupiedPct >= 50) {
+    hook = `${Math.round(census.renterOccupiedPct)}% of ${place} households rent — that's a lot of inbound leasing traffic for your team to handle.`;
+  } else if (census.medianGrossRent !== null && census.medianGrossRent >= 1500) {
+    hook = `Median rents in ${place} are sitting around $${census.medianGrossRent.toLocaleString()}/mo — at that price point, every missed inquiry is real revenue out the door.`;
+  } else if (walk.walk !== null && walk.walk >= 70) {
+    hook = `${lead.company}'s building scores a ${walk.walk} Walk Score, which means high resident inquiry volume — tours, pricing, follow-ups — coming in around the clock.`;
+  } else {
+    hook = `Noticed ${lead.company} operates in ${place} — curious how your team handles leasing inquiries after hours.`;
+  }
+
   return {
-    subject: `Quick idea for ${lead.company}`,
-    body: `Hi ${lead.name.split(" ")[0]},\n\nI was looking at ${lead.company}'s building in ${place} and wanted to reach out. RMA is the AI leasing assistant that handles tenant inquiries 24/7 — tours, pricing, follow-ups — so your team can focus on closing.${walkLine}\n\nA lot of multifamily teams we work with cut response times from hours to seconds and lift tour bookings 30%+ in the first quarter.\n\nWorth a quick 15-minute intro next week?\n\n{{REP_NAME}} from RMA`,
+    subject: `${lead.city} multifamily + RMA`,
+    body: `Hi ${firstName},\n\n${hook} RMA's AI handles those conversations 24/7 so your leasing team can focus on closing — teams typically see tour bookings up 30%+ in the first quarter.\n\nWorth a quick chat?\n\n{{REP_NAME}} from RMA`,
   };
 }
