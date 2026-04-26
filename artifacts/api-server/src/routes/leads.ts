@@ -40,11 +40,11 @@ const CreateBody = z.object({
 
 const router: IRouter = Router();
 
-router.get("/leads", (_req, res) => {
-  res.json({ leads: listLeads() });
+router.get("/leads", async (_req, res) => {
+  res.json({ leads: await listLeads() });
 });
 
-router.post("/leads", (req, res) => {
+router.post("/leads", async (req, res) => {
   const parsed = CreateBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.format() });
@@ -56,7 +56,6 @@ router.post("/leads", (req, res) => {
   const skipped: Array<{ name: string; email: string }> = [];
   const conflicts: DuplicateConflict[] = [];
 
-  // Determine batch id/label for multi-lead uploads
   const isBatch = input.length > 1;
   const batchId = parsed.data.batchId ?? (isBatch ? randomUUID() : null);
   const batchLabel =
@@ -71,15 +70,13 @@ router.post("/leads", (req, res) => {
       : null);
 
   for (const lead of input) {
-    // 1. Exact duplicate: same email already in store
-    const byEmail = findLeadByEmail(lead.email);
+    const byEmail = await findLeadByEmail(lead.email);
     if (byEmail) {
       skipped.push({ name: lead.name, email: lead.email });
       continue;
     }
 
-    // 2. Same address, different contact: flag as conflict
-    const byAddress = findLeadsByAddress(lead.propertyAddress);
+    const byAddress = await findLeadsByAddress(lead.propertyAddress);
     if (byAddress.length > 0) {
       const primary = byAddress[0]!;
       conflicts.push({
@@ -93,41 +90,42 @@ router.post("/leads", (req, res) => {
       continue;
     }
 
-    // 3. No conflict — create normally
-    created.push(addLead(lead, batchId, batchLabel));
+    created.push(await addLead(lead, batchId, batchLabel));
   }
 
   res.json({ leads: created, skipped, conflicts });
 });
 
-router.delete("/leads", (_req, res) => {
-  clearLeads();
+router.delete("/leads", async (_req, res) => {
+  await clearLeads();
   res.json({ success: true, message: "All leads deleted" });
 });
 
-router.post("/leads/seed", (_req, res) => {
-  clearLeads();
+router.post("/leads/seed", async (_req, res) => {
+  await clearLeads();
   const batchId = randomUUID();
   const batchLabel = `Sample dataset (${SAMPLE_LEADS.length} leads)`;
-  const created = SAMPLE_LEADS.map((l) => addLead(l, batchId, batchLabel));
+  const created = await Promise.all(
+    SAMPLE_LEADS.map((l) => addLead(l, batchId, batchLabel)),
+  );
   res.json({ leads: created });
 });
 
 router.post("/leads/enrich-all", async (req, res) => {
-  const pending = pendingLeads();
+  const pending = await pendingLeads();
   const results: Lead[] = [];
   let succeeded = 0;
   let failed = 0;
   for (const lead of pending) {
-    setEnriching(lead.id);
+    await setEnriching(lead.id);
     try {
       const enrichment = await enrichLead(lead);
-      const next = setEnrichment(lead.id, enrichment);
+      const next = await setEnrichment(lead.id, enrichment);
       if (next) results.push(next);
       succeeded++;
     } catch (err) {
       req.log?.warn({ err, leadId: lead.id }, "Failed to enrich lead");
-      const next = setFailed(
+      const next = await setFailed(
         lead.id,
         err instanceof Error ? err.message : "Unknown error",
       );
@@ -143,8 +141,8 @@ router.post("/leads/enrich-all", async (req, res) => {
   });
 });
 
-router.get("/leads/stats", (_req, res) => {
-  const all = listLeads();
+router.get("/leads/stats", async (_req, res) => {
+  const all = await listLeads();
   const enriched = all.filter((l) => l.status === "enriched" && l.enrichment);
   const pending = all.filter(
     (l) => l.status === "pending" || l.status === "failed",
@@ -194,8 +192,8 @@ router.get("/leads/stats", (_req, res) => {
   res.json(stats);
 });
 
-router.get("/leads/:leadId", (req, res) => {
-  const lead = getLead(req.params["leadId"]!);
+router.get("/leads/:leadId", async (req, res) => {
+  const lead = await getLead(req.params["leadId"]!);
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -208,9 +206,9 @@ const UpdateBody = z.object({
   outreachSentAt: z.string().nullable().optional(),
 });
 
-router.patch("/leads/:leadId", (req, res) => {
+router.patch("/leads/:leadId", async (req, res) => {
   const id = req.params["leadId"]!;
-  const existing = getLead(id);
+  const existing = await getLead(id);
   if (!existing) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -224,12 +222,12 @@ router.patch("/leads/:leadId", (req, res) => {
   if (parsed.data.notes !== undefined) patch.notes = parsed.data.notes;
   if (parsed.data.outreachSentAt !== undefined)
     patch.outreachSentAt = parsed.data.outreachSentAt;
-  const updated = updateLead(id, patch);
+  const updated = await updateLead(id, patch);
   res.json(updated);
 });
 
-router.delete("/leads/:leadId", (req, res) => {
-  const ok = removeLead(req.params["leadId"]!);
+router.delete("/leads/:leadId", async (req, res) => {
+  const ok = await removeLead(req.params["leadId"]!);
   if (!ok) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -245,9 +243,9 @@ const AddContactBody = z.object({
   outreachSentAt: z.string().nullable().default(null),
 });
 
-router.post("/leads/:leadId/contacts", (req, res) => {
+router.post("/leads/:leadId/contacts", async (req, res) => {
   const id = req.params["leadId"]!;
-  const lead = getLead(id);
+  const lead = await getLead(id);
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -257,7 +255,7 @@ router.post("/leads/:leadId/contacts", (req, res) => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const updated = addContactToLead(id, parsed.data);
+  const updated = await addContactToLead(id, parsed.data);
   res.json(updated);
 });
 
@@ -266,9 +264,9 @@ const UpdateContactBody = z.object({
   outreachSentAt: z.string().nullable().optional(),
 });
 
-router.patch("/leads/:leadId/contacts", (req, res) => {
+router.patch("/leads/:leadId/contacts", async (req, res) => {
   const id = req.params["leadId"]!;
-  const lead = getLead(id);
+  const lead = await getLead(id);
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -279,7 +277,7 @@ router.patch("/leads/:leadId/contacts", (req, res) => {
     return;
   }
   if (parsed.data.outreachSentAt !== undefined) {
-    const updated = updateAdditionalContactSentAt(
+    const updated = await updateAdditionalContactSentAt(
       id,
       parsed.data.email,
       parsed.data.outreachSentAt,
@@ -294,19 +292,19 @@ router.patch("/leads/:leadId/contacts", (req, res) => {
 
 router.post("/leads/:leadId/enrich", async (req, res) => {
   const id = req.params["leadId"]!;
-  const lead = getLead(id);
+  const lead = await getLead(id);
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
     return;
   }
-  setEnriching(id);
+  await setEnriching(id);
   try {
     const enrichment = await enrichLead(lead);
-    const next = setEnrichment(id, enrichment);
+    const next = await setEnrichment(id, enrichment);
     res.json(next);
   } catch (err) {
     req.log?.warn({ err, leadId: id }, "Failed to enrich lead");
-    const next = setFailed(
+    const next = await setFailed(
       id,
       err instanceof Error ? err.message : "Unknown error",
     );

@@ -32,7 +32,6 @@ function computeNextRunAt(): string | null {
     next.setSeconds(0);
     next.setMilliseconds(0);
 
-    // Find the next 9 AM
     if (next.getHours() < 9 || (next.getHours() === 9 && next.getMinutes() === 0)) {
       next.setHours(9, 0, 0, 0);
     } else {
@@ -55,7 +54,7 @@ export async function runEnrichAll(): Promise<{
     return { processed: 0, succeeded: 0, failed: 0 };
   }
 
-  const pending = pendingLeads();
+  const pending = await pendingLeads();
   if (pending.length === 0) {
     logger.info("Scheduler: no pending leads to enrich");
     lastRunAt = new Date().toISOString();
@@ -72,14 +71,14 @@ export async function runEnrichAll(): Promise<{
 
   await Promise.allSettled(
     pending.map(async (lead) => {
-      setEnriching(lead.id);
+      await setEnriching(lead.id);
       try {
         const enrichment = await enrichLead(lead);
-        setEnrichment(lead.id, enrichment);
+        await setEnrichment(lead.id, enrichment);
         succeeded++;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        setFailed(lead.id, msg);
+        await setFailed(lead.id, msg);
         failed++;
         logger.error({ leadId: lead.id, err }, "Scheduler: failed to enrich lead");
       }

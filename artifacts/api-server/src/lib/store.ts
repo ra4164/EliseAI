@@ -1,22 +1,51 @@
 import { randomUUID } from "node:crypto";
+import { eq, or, sql } from "drizzle-orm";
+import { db, leadsTable } from "@workspace/db";
 import type { Lead, LeadInput, LeadEnrichment, AdditionalContact } from "@workspace/api-zod";
 
-const leads = new Map<string, Lead>();
-
-export function listLeads(): Lead[] {
-  return Array.from(leads.values()).sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+function rowToLead(row: typeof leadsTable.$inferSelect): Lead {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    company: row.company,
+    propertyAddress: row.propertyAddress,
+    city: row.city,
+    state: row.state,
+    country: row.country,
+    status: row.status as Lead["status"],
+    createdAt: row.createdAt,
+    enrichment: (row.enrichment as Lead["enrichment"]) ?? null,
+    errorMessage: row.errorMessage ?? null,
+    batchId: row.batchId ?? null,
+    batchLabel: row.batchLabel ?? null,
+    notes: row.notes ?? null,
+    outreachSentAt: row.outreachSentAt ?? null,
+    additionalContacts: (row.additionalContacts as AdditionalContact[]) ?? [],
+  };
 }
 
-export function getLead(id: string): Lead | undefined {
-  return leads.get(id);
+export async function listLeads(): Promise<Lead[]> {
+  const rows = await db
+    .select()
+    .from(leadsTable)
+    .orderBy(sql`${leadsTable.createdAt} DESC`);
+  return rows.map(rowToLead);
 }
 
-export function findLeadByEmail(email: string): Lead | undefined {
+export async function getLead(id: string): Promise<Lead | undefined> {
+  const rows = await db
+    .select()
+    .from(leadsTable)
+    .where(eq(leadsTable.id, id))
+    .limit(1);
+  return rows[0] ? rowToLead(rows[0]) : undefined;
+}
+
+export async function findLeadByEmail(email: string): Promise<Lead | undefined> {
   const normalized = email.toLowerCase().trim();
-  return Array.from(leads.values()).find(
+  const rows = await db.select().from(leadsTable);
+  return rows.map(rowToLead).find(
     (l) =>
       l.email.toLowerCase().trim() === normalized ||
       l.additionalContacts.some(
@@ -29,20 +58,23 @@ export function normalizeAddress(addr: string): string {
   return addr.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
-export function findLeadsByAddress(propertyAddress: string): Lead[] {
+export async function findLeadsByAddress(propertyAddress: string): Promise<Lead[]> {
   const norm = normalizeAddress(propertyAddress);
-  return Array.from(leads.values()).filter(
+  const rows = await db.select().from(leadsTable);
+  return rows.map(rowToLead).filter(
     (l) => normalizeAddress(l.propertyAddress) === norm,
   );
 }
 
-export function addLead(
+export async function addLead(
   input: LeadInput,
   batchId: string | null = null,
   batchLabel: string | null = null,
-): Lead {
-  const lead: Lead = {
-    id: randomUUID(),
+): Promise<Lead> {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  const values = {
+    id,
     name: input.name,
     email: input.email,
     company: input.company,
@@ -50,8 +82,8 @@ export function addLead(
     city: input.city,
     state: input.state,
     country: input.country,
-    status: "pending",
-    createdAt: new Date().toISOString(),
+    status: "pending" as const,
+    createdAt: now,
     enrichment: null,
     errorMessage: null,
     batchId,
@@ -60,59 +92,76 @@ export function addLead(
     outreachSentAt: null,
     additionalContacts: [],
   };
-  leads.set(lead.id, lead);
-  return lead;
+  await db.insert(leadsTable).values(values);
+  return rowToLead(values as typeof leadsTable.$inferSelect);
 }
 
-export function addContactToLead(
+export async function addContactToLead(
   id: string,
   contact: AdditionalContact,
-): Lead | undefined {
-  const existing = leads.get(id);
+): Promise<Lead | undefined> {
+  const existing = await getLead(id);
   if (!existing) return undefined;
-  // Prevent exact duplicate contacts
   const alreadyExists = existing.additionalContacts.some(
     (c) => c.email.toLowerCase().trim() === contact.email.toLowerCase().trim(),
   );
   if (alreadyExists) return existing;
-  const next: Lead = {
-    ...existing,
-    additionalContacts: [...existing.additionalContacts, contact],
-  };
-  leads.set(id, next);
-  return next;
+  const updated = [...existing.additionalContacts, contact];
+  const rows = await db
+    .update(leadsTable)
+    .set({ additionalContacts: updated })
+    .where(eq(leadsTable.id, id))
+    .returning();
+  return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
-export function updateAdditionalContactSentAt(
+export async function updateAdditionalContactSentAt(
   id: string,
   email: string,
   outreachSentAt: string | null,
-): Lead | undefined {
-  const existing = leads.get(id);
+): Promise<Lead | undefined> {
+  const existing = await getLead(id);
   if (!existing) return undefined;
   const norm = email.toLowerCase().trim();
-  const next: Lead = {
-    ...existing,
-    additionalContacts: existing.additionalContacts.map((c) =>
-      c.email.toLowerCase().trim() === norm ? { ...c, outreachSentAt } : c,
-    ),
-  };
-  leads.set(id, next);
-  return next;
+  const updated = existing.additionalContacts.map((c) =>
+    c.email.toLowerCase().trim() === norm ? { ...c, outreachSentAt } : c,
+  );
+  const rows = await db
+    .update(leadsTable)
+    .set({ additionalContacts: updated })
+    .where(eq(leadsTable.id, id))
+    .returning();
+  return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
-export function updateLead(id: string, patch: Partial<Lead>): Lead | undefined {
-  const existing = leads.get(id);
-  if (!existing) return undefined;
-  const next: Lead = { ...existing, ...patch } as Lead;
-  leads.set(id, next);
-  return next;
+export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead | undefined> {
+  const dbPatch: Partial<typeof leadsTable.$inferInsert> = {};
+  if (patch.status !== undefined)
+    dbPatch.status = patch.status as typeof leadsTable.$inferInsert["status"];
+  if (patch.enrichment !== undefined)
+    dbPatch.enrichment = (patch.enrichment as object | null | undefined) ?? null;
+  if (patch.errorMessage !== undefined) dbPatch.errorMessage = patch.errorMessage;
+  if (patch.notes !== undefined) dbPatch.notes = patch.notes;
+  if (patch.outreachSentAt !== undefined) dbPatch.outreachSentAt = patch.outreachSentAt;
+  if (patch.batchId !== undefined) dbPatch.batchId = patch.batchId;
+  if (patch.batchLabel !== undefined) dbPatch.batchLabel = patch.batchLabel;
+  if (patch.additionalContacts !== undefined)
+    dbPatch.additionalContacts = patch.additionalContacts;
+
+  if (Object.keys(dbPatch).length === 0) return getLead(id);
+
+  const rows = await db
+    .update(leadsTable)
+    .set(dbPatch)
+    .where(eq(leadsTable.id, id))
+    .returning();
+  return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
-export function setEnrichment(
+export async function setEnrichment(
   id: string,
   enrichment: LeadEnrichment,
-): Lead | undefined {
+): Promise<Lead | undefined> {
   return updateLead(id, {
     status: "enriched",
     enrichment,
@@ -120,24 +169,35 @@ export function setEnrichment(
   });
 }
 
-export function setEnriching(id: string): Lead | undefined {
+export async function setEnriching(id: string): Promise<Lead | undefined> {
   return updateLead(id, { status: "enriching", errorMessage: null });
 }
 
-export function setFailed(id: string, message: string): Lead | undefined {
+export async function setFailed(id: string, message: string): Promise<Lead | undefined> {
   return updateLead(id, { status: "failed", errorMessage: message });
 }
 
-export function deleteLead(id: string): boolean {
-  return leads.delete(id);
+export async function deleteLead(id: string): Promise<boolean> {
+  const result = await db
+    .delete(leadsTable)
+    .where(eq(leadsTable.id, id))
+    .returning({ id: leadsTable.id });
+  return result.length > 0;
 }
 
-export function clearLeads(): void {
-  leads.clear();
+export async function clearLeads(): Promise<void> {
+  await db.delete(leadsTable);
 }
 
-export function pendingLeads(): Lead[] {
-  return Array.from(leads.values()).filter(
-    (l) => l.status === "pending" || l.status === "failed",
-  );
+export async function pendingLeads(): Promise<Lead[]> {
+  const rows = await db
+    .select()
+    .from(leadsTable)
+    .where(
+      or(
+        eq(leadsTable.status, "pending"),
+        eq(leadsTable.status, "failed"),
+      ),
+    );
+  return rows.map(rowToLead);
 }
