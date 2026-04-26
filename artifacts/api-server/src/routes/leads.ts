@@ -183,7 +183,7 @@ router.get("/leads/stats", async (_req, res) => {
     (l) =>
       l.funnelStatus === "contacted" &&
       l.funnelStatusUpdatedAt !== null &&
-      new Date(l.funnelStatusUpdatedAt) < staleCutoff,
+      new Date(l.funnelStatusUpdatedAt) <= staleCutoff,
   );
 
   const stats: LeadStats = {
