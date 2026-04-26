@@ -13,6 +13,7 @@ export * from "./createLeadsResult";
 export * from "./createLeadsResultSkippedItem";
 export * from "./duplicateConflict";
 export * from "./enrichBatchResult";
+export * from "./funnelStatus";
 export * from "./healthStatus";
 export * from "./lead";
 export * from "./leadEnrichment";

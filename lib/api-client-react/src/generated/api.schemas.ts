@@ -130,6 +130,19 @@ export const LeadStatus = {
   failed: "failed",
 } as const;
 
+/**
+ * Sales funnel stage for a lead after initial outreach.
+ */
+export type FunnelStatus = (typeof FunnelStatus)[keyof typeof FunnelStatus];
+
+export const FunnelStatus = {
+  contacted: "contacted",
+  replied: "replied",
+  ghosted: "ghosted",
+  call_booked: "call_booked",
+  lost: "lost",
+} as const;
+
 export interface Lead {
   id: string;
   name: string;
@@ -166,6 +179,13 @@ export interface Lead {
   outreachSentAt: string | null;
   /** Additional contacts found at the same property address via duplicate detection. */
   additionalContacts: AdditionalContact[];
+  /** Sales funnel stage. Null means not yet contacted. */
+  funnelStatus: FunnelStatus | null;
+  /**
+   * ISO timestamp when funnelStatus was last updated.
+   * @nullable
+   */
+  funnelStatusUpdatedAt: string | null;
 }
 
 export interface CreateLeadsResult {
@@ -196,6 +216,13 @@ export interface UpdateLeadBody {
    * @nullable
    */
   outreachSentAt?: string | null;
+  /** Sales funnel stage. Pass null to clear. */
+  funnelStatus?: FunnelStatus | null;
+  /**
+   * ISO timestamp when funnelStatus was last updated.
+   * @nullable
+   */
+  funnelStatusUpdatedAt?: string | null;
 }
 
 export interface ScheduleStatus {
@@ -235,6 +262,14 @@ export interface LeadStats {
   topLeads: Lead[];
   recentlyEnriched: Lead[];
   scoreDistribution: LeadStatsScoreDistributionItem[];
+  /** Number of leads with funnel status "contacted". */
+  funnelContactedCount: number;
+  /** Number of leads with funnel status "replied". */
+  funnelRepliedCount: number;
+  /** Number of leads with funnel status "call_booked". */
+  funnelCallBookedCount: number;
+  /** Leads that have been in "contacted" status for 3+ days without an update. */
+  staleLeads: Lead[];
 }
 
 export type CreateLeadsBody = {

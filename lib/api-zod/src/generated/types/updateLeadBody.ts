@@ -5,6 +5,7 @@
  * RMA Lead Enrichment API
  * OpenAPI spec version: 0.1.0
  */
+import type { FunnelStatus } from "./funnelStatus";
 
 export interface UpdateLeadBody {
   /** Rep notes / custom context for this lead. */
@@ -14,4 +15,11 @@ export interface UpdateLeadBody {
    * @nullable
    */
   outreachSentAt?: string | null;
+  /** Sales funnel stage. Pass null to clear. */
+  funnelStatus?: FunnelStatus | null;
+  /**
+   * ISO timestamp when funnelStatus was last updated.
+   * @nullable
+   */
+  funnelStatusUpdatedAt?: string | null;
 }

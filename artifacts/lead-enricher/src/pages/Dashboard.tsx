@@ -29,6 +29,10 @@ import {
   Zap,
   CheckCircle2,
   Loader2,
+  AlertTriangle,
+  Send,
+  MessageSquare,
+  PhoneCall,
 } from "lucide-react";
 import {
   Card,
@@ -213,6 +217,38 @@ export default function Dashboard() {
     <div className="p-8 space-y-6">
       <ScheduleBanner onTrigger={refreshStats} />
 
+      {/* Stale leads alert */}
+      {stats.staleLeads.length > 0 && (
+        <div
+          className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl flex-wrap"
+          style={{ background: "#FFF8E6", border: "1px solid #FDECC0" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FEF3C7" }}>
+              <AlertTriangle className="h-4 w-4" style={{ color: "#D97706" }} />
+            </div>
+            <div>
+              <span className="font-semibold text-sm" style={{ color: "#92400E" }}>
+                {stats.staleLeads.length} stale lead{stats.staleLeads.length > 1 ? "s" : ""} — no reply in 3+ days
+              </span>
+              <span className="ml-2 text-sm" style={{ color: "#B45309" }}>
+                {stats.staleLeads.slice(0, 3).map((l) => l.name).join(", ")}
+                {stats.staleLeads.length > 3 ? ` +${stats.staleLeads.length - 3} more` : ""}
+              </span>
+            </div>
+          </div>
+          <Link href="/outreach">
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border shrink-0"
+              style={{ background: "#FEF3C7", color: "#92400E", borderColor: "#FDECC0" }}
+            >
+              <Send className="h-3.5 w-3.5" />
+              Review in Outreach
+            </button>
+          </Link>
+        </div>
+      )}
+
       {/* Stat Cards — DashStack style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Total Leads */}
@@ -272,6 +308,51 @@ export default function Dashboard() {
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F5FF" }}>
             <ThermometerSnowflake className="h-6 w-6" style={{ color: "#2196F3" }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Funnel Pipeline Counts */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Contacted</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelContactedCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Awaiting reply</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F0FE" }}>
+            <Send className="h-6 w-6" style={{ color: "#4880FF" }} />
+          </div>
+        </div>
+
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Replied</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelRepliedCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Engaged prospects</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF9E6" }}>
+            <MessageSquare className="h-6 w-6" style={{ color: "#D97706" }} />
+          </div>
+        </div>
+
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between gap-4"
+          style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
+        >
+          <div>
+            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Call Booked</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelCallBookedCount}</p>
+            <p className="text-xs" style={{ color: "#898989" }}>Ready to close</p>
+          </div>
+          <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E6F9F0" }}>
+            <PhoneCall className="h-6 w-6" style={{ color: "#16A34A" }} />
           </div>
         </div>
       </div>

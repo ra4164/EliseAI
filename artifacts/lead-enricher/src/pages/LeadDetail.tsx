@@ -7,6 +7,7 @@ import {
   useUpdateLead,
   getListLeadsQueryKey,
   getGetLeadStatsQueryKey,
+  type FunnelStatus,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -141,6 +142,21 @@ export default function LeadDetail() {
     );
   };
 
+  const handleFunnelStatusChange = (val: string) => {
+    if (!leadId) return;
+    const funnelStatus = val === "" ? null : (val as FunnelStatus);
+    updateLeadMut.mutate(
+      { leadId, data: { funnelStatus } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+        },
+      },
+    );
+  };
+
   const saveNotes = useCallback(() => {
     if (!leadId) return;
     updateLeadMut.mutate(
@@ -202,6 +218,33 @@ export default function LeadDetail() {
               <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />{lead.company}</span>
               <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{lead.city}, {lead.state}</span>
               <span className="border-l pl-3 border-border">Added {format(new Date(lead.createdAt), "MMM d, yyyy")}</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-medium">Funnel:</span>
+              <select
+                value={lead.funnelStatus ?? ""}
+                onChange={(e) => handleFunnelStatusChange(e.target.value)}
+                disabled={updateLeadMut.isPending}
+                className="text-xs font-semibold rounded-full px-2.5 py-1 border-0 outline-none cursor-pointer appearance-none transition-all"
+                style={(() => {
+                  const styles: Record<string, { bg: string; color: string }> = {
+                    contacted: { bg: "#E8F0FE", color: "#1D4ED8" },
+                    replied: { bg: "#FEF3C7", color: "#92400E" },
+                    ghosted: { bg: "#FEE2E2", color: "#991B1B" },
+                    call_booked: { bg: "#DCFCE7", color: "#166534" },
+                    lost: { bg: "#F1F5F9", color: "#475569" },
+                  };
+                  const s = lead.funnelStatus ? styles[lead.funnelStatus] : null;
+                  return s ? { background: s.bg, color: s.color } : { background: "#F1F5F9", color: "#64748B" };
+                })()}
+              >
+                <option value="">— No status —</option>
+                <option value="contacted">Contacted</option>
+                <option value="replied">Replied</option>
+                <option value="ghosted">Ghosted</option>
+                <option value="call_booked">Call Booked</option>
+                <option value="lost">Lost</option>
+              </select>
             </div>
           </div>
 

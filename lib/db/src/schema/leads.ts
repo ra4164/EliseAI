@@ -7,6 +7,14 @@ export const leadStatusEnum = pgEnum("lead_status", [
   "failed",
 ]);
 
+export const funnelStatusEnum = pgEnum("funnel_status", [
+  "contacted",
+  "replied",
+  "ghosted",
+  "call_booked",
+  "lost",
+]);
+
 export const leadsTable = pgTable("leads", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -25,6 +33,8 @@ export const leadsTable = pgTable("leads", {
   notes: text("notes"),
   outreachSentAt: text("outreach_sent_at"),
   additionalContacts: jsonb("additional_contacts").notNull().default([]),
+  funnelStatus: funnelStatusEnum("funnel_status"),
+  funnelStatusUpdatedAt: text("funnel_status_updated_at"),
 });
 
 export type DbLead = typeof leadsTable.$inferSelect;

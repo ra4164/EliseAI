@@ -115,6 +115,18 @@ export const ListLeadsResponse = zod.object({
         .describe(
           "Additional contacts found at the same property address via duplicate detection.",
         ),
+      funnelStatus: zod
+        .union([
+          zod
+            .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+            .describe("Sales funnel stage for a lead after initial outreach."),
+          zod.null(),
+        ])
+        .describe("Sales funnel stage. Null means not yet contacted."),
+      funnelStatusUpdatedAt: zod
+        .string()
+        .nullable()
+        .describe("ISO timestamp when funnelStatus was last updated."),
     }),
   ),
 });
@@ -244,6 +256,20 @@ export const CreateLeadsResponse = zod.object({
           .describe(
             "Additional contacts found at the same property address via duplicate detection.",
           ),
+        funnelStatus: zod
+          .union([
+            zod
+              .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+              .describe(
+                "Sales funnel stage for a lead after initial outreach.",
+              ),
+            zod.null(),
+          ])
+          .describe("Sales funnel stage. Null means not yet contacted."),
+        funnelStatusUpdatedAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when funnelStatus was last updated."),
       }),
     )
     .describe("Leads that were successfully created."),
@@ -385,6 +411,18 @@ export const SeedSampleLeadsResponse = zod.object({
         .describe(
           "Additional contacts found at the same property address via duplicate detection.",
         ),
+      funnelStatus: zod
+        .union([
+          zod
+            .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+            .describe("Sales funnel stage for a lead after initial outreach."),
+          zod.null(),
+        ])
+        .describe("Sales funnel stage. Null means not yet contacted."),
+      funnelStatusUpdatedAt: zod
+        .string()
+        .nullable()
+        .describe("ISO timestamp when funnelStatus was last updated."),
     }),
   ),
 });
@@ -492,6 +530,18 @@ export const EnrichAllPendingLeadsResponse = zod.object({
         .describe(
           "Additional contacts found at the same property address via duplicate detection.",
         ),
+      funnelStatus: zod
+        .union([
+          zod
+            .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+            .describe("Sales funnel stage for a lead after initial outreach."),
+          zod.null(),
+        ])
+        .describe("Sales funnel stage. Null means not yet contacted."),
+      funnelStatusUpdatedAt: zod
+        .string()
+        .nullable()
+        .describe("ISO timestamp when funnelStatus was last updated."),
     }),
   ),
 });
@@ -595,6 +645,18 @@ export const GetLeadResponse = zod.object({
     .describe(
       "Additional contacts found at the same property address via duplicate detection.",
     ),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .describe("Sales funnel stage. Null means not yet contacted."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 /**
@@ -613,6 +675,19 @@ export const UpdateLeadBody = zod.object({
     .string()
     .nullish()
     .describe("ISO timestamp when outreach was sent. Pass null to un-mark."),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .optional()
+    .describe("Sales funnel stage. Pass null to clear."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullish()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 export const UpdateLeadResponse = zod.object({
@@ -707,6 +782,18 @@ export const UpdateLeadResponse = zod.object({
     .describe(
       "Additional contacts found at the same property address via duplicate detection.",
     ),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .describe("Sales funnel stage. Null means not yet contacted."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 /**
@@ -830,6 +917,18 @@ export const AddContactToLeadResponse = zod.object({
     .describe(
       "Additional contacts found at the same property address via duplicate detection.",
     ),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .describe("Sales funnel stage. Null means not yet contacted."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 /**
@@ -936,6 +1035,18 @@ export const UpdateAdditionalContactResponse = zod.object({
     .describe(
       "Additional contacts found at the same property address via duplicate detection.",
     ),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .describe("Sales funnel stage. Null means not yet contacted."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 /**
@@ -1038,6 +1149,18 @@ export const EnrichLeadResponse = zod.object({
     .describe(
       "Additional contacts found at the same property address via duplicate detection.",
     ),
+  funnelStatus: zod
+    .union([
+      zod
+        .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+        .describe("Sales funnel stage for a lead after initial outreach."),
+      zod.null(),
+    ])
+    .describe("Sales funnel stage. Null means not yet contacted."),
+  funnelStatusUpdatedAt: zod
+    .string()
+    .nullable()
+    .describe("ISO timestamp when funnelStatus was last updated."),
 });
 
 /**
@@ -1180,6 +1303,18 @@ export const GetLeadStatsResponse = zod.object({
         .describe(
           "Additional contacts found at the same property address via duplicate detection.",
         ),
+      funnelStatus: zod
+        .union([
+          zod
+            .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+            .describe("Sales funnel stage for a lead after initial outreach."),
+          zod.null(),
+        ])
+        .describe("Sales funnel stage. Null means not yet contacted."),
+      funnelStatusUpdatedAt: zod
+        .string()
+        .nullable()
+        .describe("ISO timestamp when funnelStatus was last updated."),
     }),
   ),
   recentlyEnriched: zod.array(
@@ -1277,6 +1412,18 @@ export const GetLeadStatsResponse = zod.object({
         .describe(
           "Additional contacts found at the same property address via duplicate detection.",
         ),
+      funnelStatus: zod
+        .union([
+          zod
+            .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+            .describe("Sales funnel stage for a lead after initial outreach."),
+          zod.null(),
+        ])
+        .describe("Sales funnel stage. Null means not yet contacted."),
+      funnelStatusUpdatedAt: zod
+        .string()
+        .nullable()
+        .describe("ISO timestamp when funnelStatus was last updated."),
     }),
   ),
   scoreDistribution: zod.array(
@@ -1285,4 +1432,128 @@ export const GetLeadStatsResponse = zod.object({
       count: zod.number(),
     }),
   ),
+  funnelContactedCount: zod
+    .number()
+    .describe('Number of leads with funnel status \"contacted\".'),
+  funnelRepliedCount: zod
+    .number()
+    .describe('Number of leads with funnel status \"replied\".'),
+  funnelCallBookedCount: zod
+    .number()
+    .describe('Number of leads with funnel status \"call_booked\".'),
+  staleLeads: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        name: zod.string(),
+        email: zod.string(),
+        company: zod.string(),
+        propertyAddress: zod.string(),
+        city: zod.string(),
+        state: zod.string(),
+        country: zod.string(),
+        status: zod.enum(["pending", "enriching", "enriched", "failed"]),
+        createdAt: zod.string(),
+        enrichment: zod
+          .union([
+            zod.object({
+              score: zod.number().describe("0-100 lead score"),
+              tier: zod.enum(["hot", "warm", "cold"]),
+              scoreReasons: zod.array(zod.string()),
+              salesInsights: zod.array(zod.string()),
+              talkingPoints: zod.array(zod.string()),
+              outreachEmail: zod.object({
+                subject: zod.string(),
+                body: zod.string(),
+              }),
+              walkScore: zod.object({
+                walk: zod.number().nullable(),
+                walkDescription: zod.string().nullable(),
+                transit: zod.number().nullable(),
+                transitDescription: zod.string().nullable(),
+                bike: zod.number().nullable(),
+                bikeDescription: zod.string().nullable(),
+              }),
+              census: zod.object({
+                medianHouseholdIncome: zod.number().nullable(),
+                medianGrossRent: zod.number().nullable(),
+                medianHomeValue: zod.number().nullable(),
+                totalPopulation: zod.number().nullable(),
+                renterOccupiedPct: zod.number().nullable(),
+                bachelorsOrHigherPct: zod.number().nullable(),
+                placeName: zod.string().nullable(),
+              }),
+              news: zod.array(
+                zod.object({
+                  title: zod.string(),
+                  source: zod.string(),
+                  url: zod.string(),
+                  publishedAt: zod.string(),
+                  description: zod.string().nullable(),
+                }),
+              ),
+              enrichedAt: zod.string(),
+              warnings: zod.array(zod.string()),
+            }),
+            zod.null(),
+          ])
+          .optional(),
+        errorMessage: zod.string().nullish(),
+        batchId: zod
+          .string()
+          .nullable()
+          .describe(
+            "Identifier shared by all leads uploaded in the same batch (CSV upload, bulk paste). Null for single leads.",
+          ),
+        batchLabel: zod
+          .string()
+          .nullable()
+          .describe(
+            "Human-readable label for the batch (e.g. file name or timestamp).",
+          ),
+        notes: zod
+          .string()
+          .nullable()
+          .describe("Rep-entered notes or custom context about this lead."),
+        outreachSentAt: zod
+          .string()
+          .nullable()
+          .describe(
+            "ISO timestamp when the outreach email was approved and sent by a rep (primary contact).",
+          ),
+        additionalContacts: zod
+          .array(
+            zod.object({
+              name: zod.string(),
+              email: zod.string(),
+              outreachSentAt: zod
+                .string()
+                .nullable()
+                .describe(
+                  "ISO timestamp when outreach was sent to this contact.",
+                ),
+            }),
+          )
+          .describe(
+            "Additional contacts found at the same property address via duplicate detection.",
+          ),
+        funnelStatus: zod
+          .union([
+            zod
+              .enum(["contacted", "replied", "ghosted", "call_booked", "lost"])
+              .describe(
+                "Sales funnel stage for a lead after initial outreach.",
+              ),
+            zod.null(),
+          ])
+          .describe("Sales funnel stage. Null means not yet contacted."),
+        funnelStatusUpdatedAt: zod
+          .string()
+          .nullable()
+          .describe("ISO timestamp when funnelStatus was last updated."),
+      }),
+    )
+    .describe(
+      'Leads that have been in \"contacted\" status for 3+ days without an update.',
+    ),
 });

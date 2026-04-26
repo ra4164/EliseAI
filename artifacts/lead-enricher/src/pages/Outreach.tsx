@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { Lead, AdditionalContact } from "@workspace/api-client-react";
+import type { Lead, AdditionalContact, FunnelStatus } from "@workspace/api-client-react";
 
 type Tier = "hot" | "warm" | "cold";
 
@@ -143,10 +143,39 @@ function AdditionalContactRow({
   );
 }
 
+const FUNNEL_OPTIONS: Array<{ value: FunnelStatus | ""; label: string }> = [
+  { value: "", label: "— No status —" },
+  { value: "contacted", label: "Contacted" },
+  { value: "replied", label: "Replied" },
+  { value: "ghosted", label: "Ghosted" },
+  { value: "call_booked", label: "Call Booked" },
+  { value: "lost", label: "Lost" },
+];
+
+const FUNNEL_PILL_STYLE: Record<string, { bg: string; color: string }> = {
+  contacted: { bg: "#E8F0FE", color: "#1D4ED8" },
+  replied: { bg: "#FEF3C7", color: "#92400E" },
+  ghosted: { bg: "#FEE2E2", color: "#991B1B" },
+  call_booked: { bg: "#DCFCE7", color: "#166534" },
+  lost: { bg: "#F1F5F9", color: "#475569" },
+};
+
 function OutreachCard({ lead }: { lead: Lead }) {
   const queryClient = useQueryClient();
   const updateLead = useUpdateLead();
   const [expanded, setExpanded] = useState(false);
+
+  const handleFunnelChange = (val: string) => {
+    const funnelStatus = val === "" ? null : (val as FunnelStatus);
+    updateLead.mutate(
+      { leadId: lead.id, data: { funnelStatus } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+        },
+      },
+    );
+  };
 
   const isSent = !!lead.outreachSentAt;
   const email = lead.enrichment?.outreachEmail;
@@ -223,6 +252,28 @@ function OutreachCard({ lead }: { lead: Lead }) {
               <span className="text-sm text-muted-foreground">
                 {lead.city}, {lead.state}
               </span>
+            </div>
+            <div className="mt-2">
+              <select
+                value={lead.funnelStatus ?? ""}
+                onChange={(e) => handleFunnelChange(e.target.value)}
+                disabled={updateLead.isPending}
+                className="text-xs font-semibold rounded-full px-2.5 py-1 border-0 outline-none cursor-pointer appearance-none transition-all"
+                style={
+                  lead.funnelStatus && FUNNEL_PILL_STYLE[lead.funnelStatus]
+                    ? {
+                        background: FUNNEL_PILL_STYLE[lead.funnelStatus]!.bg,
+                        color: FUNNEL_PILL_STYLE[lead.funnelStatus]!.color,
+                      }
+                    : { background: "#F1F5F9", color: "#64748B" }
+                }
+              >
+                {FUNNEL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

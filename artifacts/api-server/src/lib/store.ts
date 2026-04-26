@@ -22,6 +22,8 @@ function rowToLead(row: typeof leadsTable.$inferSelect): Lead {
     notes: row.notes ?? null,
     outreachSentAt: row.outreachSentAt ?? null,
     additionalContacts: (row.additionalContacts as AdditionalContact[]) ?? [],
+    funnelStatus: (row.funnelStatus as Lead["funnelStatus"]) ?? null,
+    funnelStatusUpdatedAt: row.funnelStatusUpdatedAt ?? null,
   };
 }
 
@@ -91,6 +93,8 @@ export async function addLead(
     notes: null,
     outreachSentAt: null,
     additionalContacts: [],
+    funnelStatus: null,
+    funnelStatusUpdatedAt: null,
   };
   await db.insert(leadsTable).values(values);
   return rowToLead(values as typeof leadsTable.$inferSelect);
@@ -147,6 +151,10 @@ export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead
   if (patch.batchLabel !== undefined) dbPatch.batchLabel = patch.batchLabel;
   if (patch.additionalContacts !== undefined)
     dbPatch.additionalContacts = patch.additionalContacts;
+  if (patch.funnelStatus !== undefined)
+    dbPatch.funnelStatus = patch.funnelStatus as typeof leadsTable.$inferInsert["funnelStatus"];
+  if (patch.funnelStatusUpdatedAt !== undefined)
+    dbPatch.funnelStatusUpdatedAt = patch.funnelStatusUpdatedAt;
 
   if (Object.keys(dbPatch).length === 0) return getLead(id);
 

@@ -19,4 +19,12 @@ export interface LeadStats {
   topLeads: Lead[];
   recentlyEnriched: Lead[];
   scoreDistribution: LeadStatsScoreDistributionItem[];
+  /** Number of leads with funnel status "contacted". */
+  funnelContactedCount: number;
+  /** Number of leads with funnel status "replied". */
+  funnelRepliedCount: number;
+  /** Number of leads with funnel status "call_booked". */
+  funnelCallBookedCount: number;
+  /** Leads that have been in "contacted" status for 3+ days without an update. */
+  staleLeads: Lead[];
 }

@@ -177,6 +177,15 @@ router.get("/leads/stats", async (_req, res) => {
         new Date(a.enrichment!.enrichedAt).getTime(),
     )
     .slice(0, 5);
+
+  const staleCutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  const stale = all.filter(
+    (l) =>
+      l.funnelStatus === "contacted" &&
+      l.funnelStatusUpdatedAt !== null &&
+      new Date(l.funnelStatusUpdatedAt) < staleCutoff,
+  );
+
   const stats: LeadStats = {
     total: all.length,
     enrichedCount: enriched.length,
@@ -188,6 +197,12 @@ router.get("/leads/stats", async (_req, res) => {
     topLeads: top,
     recentlyEnriched: recent,
     scoreDistribution: distribution,
+    funnelContactedCount: all.filter((l) => l.funnelStatus === "contacted")
+      .length,
+    funnelRepliedCount: all.filter((l) => l.funnelStatus === "replied").length,
+    funnelCallBookedCount: all.filter((l) => l.funnelStatus === "call_booked")
+      .length,
+    staleLeads: stale,
   };
   res.json(stats);
 });
@@ -201,9 +216,19 @@ router.get("/leads/:leadId", async (req, res) => {
   res.json(lead);
 });
 
+const FUNNEL_STATUSES = [
+  "contacted",
+  "replied",
+  "ghosted",
+  "call_booked",
+  "lost",
+] as const;
+
 const UpdateBody = z.object({
   notes: z.string().optional(),
   outreachSentAt: z.string().nullable().optional(),
+  funnelStatus: z.enum(FUNNEL_STATUSES).nullable().optional(),
+  funnelStatusUpdatedAt: z.string().nullable().optional(),
 });
 
 router.patch("/leads/:leadId", async (req, res) => {
@@ -222,6 +247,15 @@ router.patch("/leads/:leadId", async (req, res) => {
   if (parsed.data.notes !== undefined) patch.notes = parsed.data.notes;
   if (parsed.data.outreachSentAt !== undefined)
     patch.outreachSentAt = parsed.data.outreachSentAt;
+  if (parsed.data.funnelStatus !== undefined) {
+    patch.funnelStatus = parsed.data.funnelStatus;
+    patch.funnelStatusUpdatedAt =
+      parsed.data.funnelStatusUpdatedAt !== undefined
+        ? parsed.data.funnelStatusUpdatedAt
+        : parsed.data.funnelStatus !== null
+          ? new Date().toISOString()
+          : null;
+  }
   const updated = await updateLead(id, patch);
   res.json(updated);
 });

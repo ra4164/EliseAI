@@ -505,7 +505,15 @@ components:
           items:
             $ref: "#/components/schemas/AdditionalContact"
           description: Additional contacts found at the same property address via duplicate detection.
-      required: [id, name, email, company, propertyAddress, city, state, country, status, createdAt, batchId, batchLabel, notes, outreachSentAt, additionalContacts]
+        funnelStatus:
+          oneOf:
+            - $ref: "#/components/schemas/FunnelStatus"
+            - type: "null"
+          description: Sales funnel stage. Null means not yet contacted.
+        funnelStatusUpdatedAt:
+          type: [string, "null"]
+          description: ISO timestamp when funnelStatus was last updated.
+      required: [id, name, email, company, propertyAddress, city, state, country, status, createdAt, batchId, batchLabel, notes, outreachSentAt, additionalContacts, funnelStatus, funnelStatusUpdatedAt]
 
     LeadList:
       type: object
@@ -531,6 +539,11 @@ components:
             $ref: "#/components/schemas/Lead"
       required: [processed, succeeded, failed, leads]
 
+    FunnelStatus:
+      type: string
+      enum: [contacted, replied, ghosted, call_booked, lost]
+      description: Sales funnel stage for a lead after initial outreach.
+
     UpdateLeadBody:
       type: object
       properties:
@@ -540,6 +553,14 @@ components:
         outreachSentAt:
           type: [string, "null"]
           description: ISO timestamp when outreach was sent. Pass null to un-mark.
+        funnelStatus:
+          oneOf:
+            - $ref: "#/components/schemas/FunnelStatus"
+            - type: "null"
+          description: Sales funnel stage. Pass null to clear.
+        funnelStatusUpdatedAt:
+          type: [string, "null"]
+          description: ISO timestamp when funnelStatus was last updated.
 
     ScheduleStatus:
       type: object
@@ -608,4 +629,18 @@ components:
               count:
                 type: number
             required: [bucket, count]
-      required: [total, enrichedCount, pendingCount, averageScore, hotCount, warmCount, coldCount, topLeads, recentlyEnriched, scoreDistribution]
+        funnelContactedCount:
+          type: number
+          description: Number of leads with funnel status "contacted".
+        funnelRepliedCount:
+          type: number
+          description: Number of leads with funnel status "replied".
+        funnelCallBookedCount:
+          type: number
+          description: Number of leads with funnel status "call_booked".
+        staleLeads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+          description: Leads that have been in "contacted" status for 3+ days without an update.
+      required: [total, enrichedCount, pendingCount, averageScore, hotCount, warmCount, coldCount, topLeads, recentlyEnriched, scoreDistribution, funnelContactedCount, funnelRepliedCount, funnelCallBookedCount, staleLeads]

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AdditionalContact } from "./additionalContact";
+import type { FunnelStatus } from "./funnelStatus";
 import type { LeadEnrichment } from "./leadEnrichment";
 import type { LeadStatus } from "./leadStatus";
 
@@ -45,4 +46,11 @@ export interface Lead {
   outreachSentAt: string | null;
   /** Additional contacts found at the same property address via duplicate detection. */
   additionalContacts: AdditionalContact[];
+  /** Sales funnel stage. Null means not yet contacted. */
+  funnelStatus: FunnelStatus | null;
+  /**
+   * ISO timestamp when funnelStatus was last updated.
+   * @nullable
+   */
+  funnelStatusUpdatedAt: string | null;
 }

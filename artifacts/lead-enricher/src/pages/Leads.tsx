@@ -45,6 +45,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { downloadEnrichedCsv } from "@/lib/csv";
 
+const FUNNEL_PILL: Record<string, { label: string; bg: string; color: string }> = {
+  contacted: { label: "Contacted", bg: "#E8F0FE", color: "#1D4ED8" },
+  replied: { label: "Replied", bg: "#FEF3C7", color: "#92400E" },
+  ghosted: { label: "Ghosted", bg: "#FEE2E2", color: "#991B1B" },
+  call_booked: { label: "Call Booked", bg: "#DCFCE7", color: "#166534" },
+  lost: { label: "Lost", bg: "#F1F5F9", color: "#475569" },
+};
+
+function FunnelPill({ status }: { status: string | null }) {
+  if (!status) return <span className="text-muted-foreground text-xs">—</span>;
+  const meta = FUNNEL_PILL[status];
+  if (!meta) return <span className="text-muted-foreground text-xs">{status}</span>;
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+      style={{ background: meta.bg, color: meta.color }}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
 const BATCH_COLORS = [
   "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300 border-violet-200 dark:border-violet-800",
   "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 border-pink-200 dark:border-pink-800",
@@ -370,6 +392,7 @@ export default function Leads() {
                 <TableHead>Batch</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Score</TableHead>
+                <TableHead>Funnel</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -390,6 +413,9 @@ export default function Leads() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-6 w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-20" />
                   </TableCell>
                   <TableCell className="text-right">
                     <Skeleton className="h-8 w-8 ml-auto" />
@@ -437,6 +463,7 @@ export default function Leads() {
                 <TableHead style={{ color: "#898989" }}>Batch</TableHead>
                 <TableHead style={{ color: "#898989" }}>Status</TableHead>
                 <TableHead style={{ color: "#898989" }}>Score</TableHead>
+                <TableHead style={{ color: "#898989" }}>Funnel</TableHead>
                 <TableHead className="text-right" style={{ color: "#898989" }}>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -488,6 +515,9 @@ export default function Leads() {
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <FunnelPill status={lead.funnelStatus ?? null} />
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

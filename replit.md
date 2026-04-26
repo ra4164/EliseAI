@@ -37,8 +37,11 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - Same property address + different contact → `conflicts[]` returned, user merges via UI
   - Same name + different address → created normally
 - **Additional contacts**: `additionalContacts[]` on Lead; POST `/leads/:id/contacts` to merge; per-contact outreach send in Outreach page
+- **Funnel status tracking**: `funnelStatus` (contacted/replied/ghosted/call_booked/lost) + `funnelStatusUpdatedAt` on each lead; color-coded pills in Leads table; inline selector on Outreach cards and Lead Detail page
+- **Stale lead detection**: Dashboard banner alerts when any lead stays in "contacted" for 3+ days without a reply
+- **Funnel pipeline stats**: Dashboard shows Contacted / Replied / Call Booked counts in a second stats row
 - **9 AM cron auto-enrichment** + manual enrich-all trigger
-- **In-memory store** (Map); no database required for the Lead Enricher artifact
+- **PostgreSQL persistence**: Drizzle ORM + `@workspace/db`; all store operations are async; schema at `lib/db/src/schema/leads.ts`
 
 ## DashStack UI Design System
 
