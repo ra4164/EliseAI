@@ -18,12 +18,12 @@ export const leadsTable = pgTable("leads", {
   country: text("country").notNull(),
   status: leadStatusEnum("status").notNull().default("pending"),
   createdAt: text("created_at").notNull(),
-  enrichment: jsonb("enrichment").default(null),
-  errorMessage: text("error_message").default(null),
-  batchId: text("batch_id").default(null),
-  batchLabel: text("batch_label").default(null),
-  notes: text("notes").default(null),
-  outreachSentAt: text("outreach_sent_at").default(null),
+  enrichment: jsonb("enrichment"),
+  errorMessage: text("error_message"),
+  batchId: text("batch_id"),
+  batchLabel: text("batch_label"),
+  notes: text("notes"),
+  outreachSentAt: text("outreach_sent_at"),
   additionalContacts: jsonb("additional_contacts").notNull().default([]),
 });
 

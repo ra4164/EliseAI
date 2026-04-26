@@ -1,6 +1,8 @@
 export * from "./generated/api";
 export type {
+  AdditionalContact,
   CensusData,
+  DuplicateConflict,
   EnrichBatchResult,
   HealthStatus,
   Lead,
