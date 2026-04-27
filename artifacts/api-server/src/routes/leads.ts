@@ -6,8 +6,6 @@ import {
   addContactToLead,
   clearLeads,
   deleteLead as removeLead,
-  findLeadByEmail,
-  findLeadsByAddress,
   getLead,
   listLeads,
   pendingLeads,
@@ -19,7 +17,7 @@ import {
 } from "../lib/store";
 import { enrichLead } from "../lib/enrich";
 import { SAMPLE_LEADS } from "../lib/sample-leads";
-import type { Lead, LeadStats, DuplicateConflict } from "@workspace/api-zod";
+import type { Lead, LeadStats } from "@workspace/api-zod";
 
 const LeadInputSchema = z.object({
   name: z.string().min(1),
@@ -48,7 +46,7 @@ router.get("/leads", async (_req, res) => {
   }
 });
 
-/** Creates one or more leads; deduplicates by email and property address. */
+/** Creates one or more leads with no deduplication — every submitted lead is added. */
 router.post("/leads", async (req, res) => {
   try {
     const parsed = CreateBody.safeParse(req.body);
@@ -57,10 +55,6 @@ router.post("/leads", async (req, res) => {
       return;
     }
     const { leads: input } = parsed.data;
-
-    const created: Lead[] = [];
-    const skipped: Array<{ name: string; email: string }> = [];
-    const conflicts: DuplicateConflict[] = [];
 
     const isBatch = input.length > 1;
     const batchId = parsed.data.batchId ?? (isBatch ? randomUUID() : null);
@@ -75,31 +69,11 @@ router.post("/leads", async (req, res) => {
           })} (${input.length} leads)`
         : null);
 
-    for (const lead of input) {
-      const byEmail = await findLeadByEmail(lead.email);
-      if (byEmail) {
-        skipped.push({ name: lead.name, email: lead.email });
-        continue;
-      }
+    const created = await Promise.all(
+      input.map((lead) => addLead(lead, batchId, batchLabel)),
+    );
 
-      const byAddress = await findLeadsByAddress(lead.propertyAddress);
-      if (byAddress.length > 0) {
-        const primary = byAddress[0]!;
-        conflicts.push({
-          incomingName: lead.name,
-          incomingEmail: lead.email,
-          existingLeadId: primary.id,
-          existingLeadName: primary.name,
-          existingLeadEmail: primary.email,
-          propertyAddress: lead.propertyAddress,
-        });
-        continue;
-      }
-
-      created.push(await addLead(lead, batchId, batchLabel));
-    }
-
-    res.json({ leads: created, skipped, conflicts });
+    res.json({ leads: created, skipped: [], conflicts: [] });
   } catch (err) {
     res.status(500).json({ error: "Failed to create leads" });
   }
