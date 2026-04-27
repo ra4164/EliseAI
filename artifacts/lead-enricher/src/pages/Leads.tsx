@@ -44,7 +44,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { downloadEnrichedCsv } from "@/lib/csv";
-import { getEffectiveScore, getFunnelPrediction, getEffectiveTier } from "@/lib/funnelPrediction";
 
 const FUNNEL_PILL: Record<string, { label: string; bg: string; color: string }> = {
   contacted: { label: "Contacted", bg: "#E8F0FE", color: "#1D4ED8" },
@@ -506,27 +505,12 @@ export default function Leads() {
                     </TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell>
-                      {lead.status === "enriched" && lead.enrichment ? (() => {
-                        const base = lead.enrichment.score;
-                        const effective = getEffectiveScore(base, lead.funnelStatus);
-                        const delta = effective - base;
-                        const pred = getFunnelPrediction(lead.funnelStatus);
-                        const tier = pred ? getEffectiveTier(effective) : lead.enrichment.tier;
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-medium text-lg">{effective}</span>
-                            {pred && delta !== 0 && (
-                              <span
-                                className="text-xs font-semibold"
-                                style={{ color: delta > 0 ? "#16A34A" : "#DC2626" }}
-                              >
-                                {delta > 0 ? `+${delta}` : delta}
-                              </span>
-                            )}
-                            {getTierBadge(tier)}
-                          </div>
-                        );
-                      })() : (
+                      {lead.status === "enriched" && lead.enrichment ? (
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-medium text-lg">{lead.enrichment.score}</span>
+                          {getTierBadge(lead.enrichment.tier)}
+                        </div>
+                      ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
                     </TableCell>

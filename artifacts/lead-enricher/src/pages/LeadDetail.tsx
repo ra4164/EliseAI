@@ -42,7 +42,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { getFunnelPrediction, getEffectiveScore, getEffectiveTier } from "@/lib/funnelPrediction";
 
 function buildMailtoUrl(email: string, subject: string, body: string): string {
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -196,10 +195,6 @@ export default function LeadDetail() {
   const e = lead.enrichment;
   const isEnriched = lead.status === "enriched" && !!e;
   const isSent = !!lead.outreachSentAt;
-
-  const funnelPred = getFunnelPrediction(lead.funnelStatus);
-  const effectiveScore = e ? getEffectiveScore(e.score, lead.funnelStatus) : null;
-  const effectiveTier = effectiveScore !== null ? getEffectiveTier(effectiveScore) : e?.tier;
 
   return (
     <div className="p-4 sm:p-8 max-w-[1200px] mx-auto space-y-6 pb-24">
