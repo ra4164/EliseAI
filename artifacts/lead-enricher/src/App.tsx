@@ -76,7 +76,7 @@ function TopHeader() {
           className="flex h-9 w-9 items-center justify-center rounded-xl font-semibold text-sm text-white shrink-0 cursor-pointer"
           style={{ background: "#4880FF" }}
         >
-          RM
+          R
         </div>
       </div>
     </header>

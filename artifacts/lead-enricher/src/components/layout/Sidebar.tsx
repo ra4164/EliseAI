@@ -54,7 +54,7 @@ export function Sidebar() {
           <Building2 className="h-5 w-5" />
         </div>
         <div>
-          <span className="font-bold text-[15px] text-white tracking-tight">RMA</span>
+          <span className="font-bold text-[15px] text-white tracking-tight">EliseAI</span>
           <p className="text-[11px] leading-none mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>Lead Enricher</p>
         </div>
       </div>
@@ -143,9 +143,17 @@ export function Sidebar() {
           <Settings className="h-[18px] w-[18px] shrink-0" style={{ color: "rgba(255,255,255,0.6)" }} />
           Settings
         </button>
-        <div className="mt-3 px-3">
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>RMA Lead Enricher</p>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>Internal Sales Tool</p>
+        <div className="mt-3 px-3 flex items-center gap-2.5">
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-full text-white text-[11px] font-bold shrink-0"
+            style={{ background: "#4880FF" }}
+          >
+            R
+          </div>
+          <div>
+            <p className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>Rupa</p>
+            <p className="text-[10px] leading-tight" style={{ color: "rgba(255,255,255,0.35)" }}>GTM Engineer · EliseAI</p>
+          </div>
         </div>
       </div>
     </aside>

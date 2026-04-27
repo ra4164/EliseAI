@@ -7,11 +7,43 @@ import { fetchNews } from "./news";
 import { generateInsights } from "./gemini";
 import { computeBaseScore, tierFromScore } from "./scoring";
 
+function firstName(fullName: string): string {
+  return fullName.split(" ")[0] ?? fullName;
+}
+
+function buildTemplateEmail(
+  lead: Pick<Lead, "name" | "company" | "city" | "state">,
+  tier: "hot" | "warm" | "cold",
+): { subject: string; body: string } {
+  const name = firstName(lead.name);
+  const company = lead.company;
+  const city = lead.city;
+  const state = lead.state;
+
+  if (tier === "hot") {
+    return {
+      subject: `leasing ops at ${company}`,
+      body: `Hi ${name},\n\nManaging leasing at scale in ${city} is no small thing — between after-hours inquiries, tour scheduling, and resident follow-ups, the volume adds up fast.\n\nEliseAI handles all of that automatically — prospect management, AI-guided tours, even move-in coordination — so your team can focus on the work that actually needs a human.\n\nWould love to show you what it looks like in practice:\nBook 15 minutes here: https://eliseai.com/book-a-demo\n\nBest,\nRupa`,
+    };
+  }
+
+  if (tier === "warm") {
+    return {
+      subject: `how is ${company} handling leasing volume?`,
+      body: `Hi ${name},\n\nCurious how your team is currently managing prospect inquiries and tour scheduling in ${city} — especially after hours.\n\nA lot of operators we talk to are dealing with the same thing: leasing staff stretched thin, response times slipping, leads going cold. EliseAI plugs into your existing workflow and handles the repetitive stuff — follow-ups, scheduling, renewals — so nothing falls through the cracks.\n\nHappy to walk you through it if it sounds relevant:\nGrab a time here: https://eliseai.com/book-a-demo\n\nBest,\nRupa`,
+    };
+  }
+
+  return {
+    subject: `quick one for ${company}`,
+    body: `Hi ${name},\n\nCame across ${company} and wanted to reach out — we work with property managers across ${state} on automating the parts of leasing that eat up the most time: inquiries, tour coordination, maintenance follow-ups, renewals.\n\nNot sure if the timing is right for you, but if it's something you're thinking about this year, happy to share what operators similar to you are doing.\n\nTake a look here: https://eliseai.com/book-a-demo\n\nBest,\nRupa`,
+  };
+}
+
 export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   const warnings: string[] = [];
   const fullAddress = `${lead.propertyAddress}, ${lead.city}, ${lead.state}`;
 
-  // Geocode (required for census + walkscore)
   const geo = await geocodeAddress(fullAddress);
   if (!geo) warnings.push("Could not geocode the property address");
 
@@ -47,7 +79,6 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   if (news.length === 0) warnings.push("No recent news found for this company");
 
   const base = computeBaseScore({ walk, census, news });
-
   const baseTier = tierFromScore(base.score);
 
   let aiInsights = await generateInsights({
@@ -76,7 +107,6 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
       scoreReasons: [],
       salesInsights: buildFallbackInsights(lead, walk, census, news),
       talkingPoints: buildFallbackTalkingPoints(lead, walk, census),
-      outreachEmail: buildFallbackEmail(lead, census, walk),
     };
   }
 
@@ -85,13 +115,16 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
     Math.min(100, Math.round(base.score + aiInsights.scoreAdjustment)),
   );
 
+  const finalTier = tierFromScore(adjusted);
+  const outreachEmail = buildTemplateEmail(lead, finalTier);
+
   const enrichment: LeadEnrichment = {
     score: adjusted,
-    tier: tierFromScore(adjusted),
+    tier: finalTier,
     scoreReasons: [...base.reasons, ...aiInsights.scoreReasons],
     salesInsights: aiInsights.salesInsights,
     talkingPoints: aiInsights.talkingPoints,
-    outreachEmail: aiInsights.outreachEmail,
+    outreachEmail,
     walkScore: walk,
     census,
     news,
@@ -150,29 +183,4 @@ function buildFallbackTalkingPoints(
     );
   out.push("Ask about current leasing team headcount and after-hours coverage.");
   return out;
-}
-
-function buildFallbackEmail(
-  lead: Lead,
-  census: { placeName: string | null; medianGrossRent: number | null; renterOccupiedPct: number | null },
-  walk: { walk: number | null },
-): { subject: string; body: string } {
-  const firstName = lead.name.split(" ")[0];
-  const place = census.placeName ?? lead.city;
-
-  let hook: string;
-  if (census.renterOccupiedPct !== null && census.renterOccupiedPct >= 50) {
-    hook = `${Math.round(census.renterOccupiedPct)}% of ${place} households rent — that's a lot of inbound leasing traffic for your team to handle.`;
-  } else if (census.medianGrossRent !== null && census.medianGrossRent >= 1500) {
-    hook = `Median rents in ${place} are sitting around $${census.medianGrossRent.toLocaleString()}/mo — at that price point, every missed inquiry is real revenue out the door.`;
-  } else if (walk.walk !== null && walk.walk >= 70) {
-    hook = `${lead.company}'s building scores a ${walk.walk} Walk Score, which means high resident inquiry volume — tours, pricing, follow-ups — coming in around the clock.`;
-  } else {
-    hook = `Noticed ${lead.company} operates in ${place} — curious how your team handles leasing inquiries after hours.`;
-  }
-
-  return {
-    subject: `${lead.city} multifamily + RMA`,
-    body: `Hi ${firstName},\n\n${hook} RMA's AI handles those conversations 24/7 so your leasing team can focus on closing — teams typically see tour bookings up 30%+ in the first quarter.\n\nWorth a quick chat?\n\n{{REP_NAME}} from RMA`,
-  };
 }

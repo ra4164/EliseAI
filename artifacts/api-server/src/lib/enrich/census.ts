@@ -2,8 +2,6 @@ import { logger } from "../logger";
 import type { CensusData } from "@workspace/api-zod";
 import type { GeocodeResult } from "./geocode";
 
-const CENSUS_API_KEY = process.env["CENSUS_API_KEY"];
-
 // ACS 5-Year (2022) variables
 // B19013_001E: Median household income
 // B25064_001E: Median gross rent
@@ -42,11 +40,8 @@ function toNumOrNull(value: string): number | null {
 export async function fetchCensusData(
   geo: GeocodeResult,
 ): Promise<CensusData> {
-  if (!CENSUS_API_KEY) {
-    return emptyCensus(geo.placeName ?? null);
-  }
-
   // Prefer place-level data when available, otherwise fall back to county.
+  // The Census ACS public endpoint works without an API key (500 req/day limit).
   const url = new URL("https://api.census.gov/data/2022/acs/acs5");
   url.searchParams.set("get", VARIABLES.join(","));
   if (geo.placeGeoid) {
@@ -56,7 +51,6 @@ export async function fetchCensusData(
     url.searchParams.set("for", `county:${geo.county}`);
     url.searchParams.set("in", `state:${geo.state}`);
   }
-  url.searchParams.set("key", CENSUS_API_KEY);
 
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
