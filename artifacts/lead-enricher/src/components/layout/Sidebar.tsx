@@ -151,7 +151,6 @@ export function Sidebar() {
           </div>
           <div>
             <p className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>Rupa</p>
-            <p className="text-[10px] leading-tight" style={{ color: "rgba(255,255,255,0.35)" }}>GTM Engineer · EliseAI</p>
           </div>
         </div>
       </div>
