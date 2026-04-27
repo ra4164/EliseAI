@@ -7,10 +7,12 @@ import { fetchNews } from "./news";
 import { generateInsights } from "./gemini";
 import { computeBaseScore, tierFromScore } from "./scoring";
 
+/** Extracts the first word from a full name. */
 function firstName(fullName: string): string {
   return fullName.split(" ")[0] ?? fullName;
 }
 
+/** Returns a tier-appropriate subject and body email template signed by Rupa. */
 function buildTemplateEmail(
   lead: Pick<Lead, "name" | "company" | "city" | "state">,
   tier: "hot" | "warm" | "cold",
@@ -40,6 +42,7 @@ function buildTemplateEmail(
   };
 }
 
+/** Runs the full enrichment pipeline: geocode → Census → WalkScore → news → AI → score. */
 export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   const warnings: string[] = [];
   const fullAddress = `${lead.propertyAddress}, ${lead.city}, ${lead.state}`;
@@ -145,6 +148,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   return enrichment;
 }
 
+/** Generates heuristic sales insights from raw data when AI is unavailable. */
 function buildFallbackInsights(
   lead: Lead,
   walk: { walk: number | null },
@@ -168,6 +172,7 @@ function buildFallbackInsights(
   return out;
 }
 
+/** Generates heuristic talking points from raw data when AI is unavailable. */
 function buildFallbackTalkingPoints(
   lead: Lead,
   walk: { walk: number | null },

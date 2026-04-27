@@ -29,6 +29,7 @@ const VARIABLES = [
   "B15003_001E",
 ];
 
+/** Converts a Census API string value to a number, treating sentinel values as null. */
 function toNumOrNull(value: string): number | null {
   if (value === undefined || value === null) return null;
   if (value === "" || value === "-666666666" || value === "null") return null;
@@ -37,6 +38,7 @@ function toNumOrNull(value: string): number | null {
   return n;
 }
 
+/** Fetches ACS 5-Year demographics for the geocoded location (place or county level). */
 export async function fetchCensusData(
   geo: GeocodeResult,
 ): Promise<CensusData> {
@@ -93,6 +95,7 @@ export async function fetchCensusData(
   }
 }
 
+/** Returns a CensusData object with all numeric fields null and the given place name. */
 function emptyCensus(placeName: string | null): CensusData {
   return {
     medianHouseholdIncome: null,

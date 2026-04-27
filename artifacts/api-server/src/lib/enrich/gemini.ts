@@ -43,6 +43,7 @@ If rep notes are provided, use them to make the insights and talking points more
 
 Output strictly valid JSON matching the provided schema. No markdown, no extra prose.`;
 
+/** Calls the Gemini API to produce score adjustments, sales insights, and talking points. */
 export async function generateInsights(
   input: GeminiInsightInput,
 ): Promise<GeminiInsightOutput | null> {

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -44,7 +44,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
 import { downloadCsvTemplate, parseLeadsCsv } from "@/lib/csv";
 
 const singleLeadSchema = z.object({

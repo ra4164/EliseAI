@@ -12,6 +12,7 @@ const EMPTY: WalkScoreData = {
   bikeDescription: null,
 };
 
+/** Fetches Walk, Transit, and Bike scores for the given address and coordinates. */
 export async function fetchWalkScore(
   address: string,
   lat: number,

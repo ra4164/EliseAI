@@ -3,6 +3,7 @@ import type { NewsArticle } from "@workspace/api-zod";
 
 const NEWS_API_KEY = process.env["NEWS_API_KEY"];
 
+/** Fetches up to 5 recent English news articles matching the query via NewsAPI. */
 export async function fetchNews(query: string): Promise<NewsArticle[]> {
   if (!NEWS_API_KEY) return [];
   const url = new URL("https://newsapi.org/v2/everything");

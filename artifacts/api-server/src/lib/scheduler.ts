@@ -25,6 +25,7 @@ let isRunning = false;
 
 const CRON_EXPRESSION = "0 9 * * *"; // 09:00 every day
 
+/** Computes the next 9:00 AM run time in server-local time, or null on error. */
 function computeNextRunAt(): string | null {
   try {
     const now = new Date();
@@ -44,6 +45,7 @@ function computeNextRunAt(): string | null {
   }
 }
 
+/** Enriches all pending/failed leads concurrently; guards against concurrent runs. */
 export async function runEnrichAll(): Promise<{
   processed: number;
   succeeded: number;
@@ -98,6 +100,7 @@ export async function runEnrichAll(): Promise<{
   return { processed: pending.length, succeeded, failed };
 }
 
+/** Returns the current scheduler state including last run stats and next run time. */
 export function getScheduleStatus(): ScheduleStatus {
   return {
     cronExpression: CRON_EXPRESSION,
@@ -110,6 +113,7 @@ export function getScheduleStatus(): ScheduleStatus {
   };
 }
 
+/** Registers the daily 9:00 AM cron job that calls runEnrichAll. */
 export function startScheduler(): void {
   cron.schedule(CRON_EXPRESSION, async () => {
     logger.info("Scheduler: cron fired — running enrichAll");

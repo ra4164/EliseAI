@@ -3,6 +3,7 @@ import { eq, or, sql } from "drizzle-orm";
 import { db, leadsTable } from "@workspace/db";
 import type { Lead, LeadInput, LeadEnrichment, AdditionalContact } from "@workspace/api-zod";
 
+/** Maps a raw database row to a typed Lead object. */
 function rowToLead(row: typeof leadsTable.$inferSelect): Lead {
   return {
     id: row.id,
@@ -27,6 +28,7 @@ function rowToLead(row: typeof leadsTable.$inferSelect): Lead {
   };
 }
 
+/** Returns all leads ordered by creation date descending. */
 export async function listLeads(): Promise<Lead[]> {
   const rows = await db
     .select()
@@ -35,6 +37,7 @@ export async function listLeads(): Promise<Lead[]> {
   return rows.map(rowToLead);
 }
 
+/** Fetches a single lead by its UUID, or returns undefined if not found. */
 export async function getLead(id: string): Promise<Lead | undefined> {
   const rows = await db
     .select()
@@ -44,6 +47,7 @@ export async function getLead(id: string): Promise<Lead | undefined> {
   return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
+/** Finds a lead whose primary or additional-contact email matches (case-insensitive). */
 export async function findLeadByEmail(email: string): Promise<Lead | undefined> {
   const normalized = email.toLowerCase().trim();
   const rows = await db.select().from(leadsTable);
@@ -56,10 +60,12 @@ export async function findLeadByEmail(email: string): Promise<Lead | undefined> 
   );
 }
 
+/** Lowercases and collapses whitespace in an address string for comparison. */
 export function normalizeAddress(addr: string): string {
   return addr.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
+/** Returns all leads whose property address matches after normalization. */
 export async function findLeadsByAddress(propertyAddress: string): Promise<Lead[]> {
   const norm = normalizeAddress(propertyAddress);
   const rows = await db.select().from(leadsTable);
@@ -68,6 +74,7 @@ export async function findLeadsByAddress(propertyAddress: string): Promise<Lead[
   );
 }
 
+/** Inserts a new lead with pending status and optional batch grouping. */
 export async function addLead(
   input: LeadInput,
   batchId: string | null = null,
@@ -100,6 +107,7 @@ export async function addLead(
   return rowToLead(values as typeof leadsTable.$inferSelect);
 }
 
+/** Appends an additional contact to a lead, skipping duplicates by email. */
 export async function addContactToLead(
   id: string,
   contact: AdditionalContact,
@@ -119,6 +127,7 @@ export async function addContactToLead(
   return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
+/** Sets the outreachSentAt timestamp on a specific additional contact by email. */
 export async function updateAdditionalContactSentAt(
   id: string,
   email: string,
@@ -138,6 +147,7 @@ export async function updateAdditionalContactSentAt(
   return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
+/** Applies a partial update to a lead, mapping only known fields to DB columns. */
 export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead | undefined> {
   const dbPatch: Partial<typeof leadsTable.$inferInsert> = {};
   if (patch.status !== undefined)
@@ -166,6 +176,7 @@ export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead
   return rows[0] ? rowToLead(rows[0]) : undefined;
 }
 
+/** Saves enrichment data and marks the lead status as enriched. */
 export async function setEnrichment(
   id: string,
   enrichment: LeadEnrichment,
@@ -177,14 +188,17 @@ export async function setEnrichment(
   });
 }
 
+/** Marks a lead as currently being enriched and clears any prior error. */
 export async function setEnriching(id: string): Promise<Lead | undefined> {
   return updateLead(id, { status: "enriching", errorMessage: null });
 }
 
+/** Marks a lead as failed and stores the error message. */
 export async function setFailed(id: string, message: string): Promise<Lead | undefined> {
   return updateLead(id, { status: "failed", errorMessage: message });
 }
 
+/** Deletes a lead by ID and returns true if a row was removed. */
 export async function deleteLead(id: string): Promise<boolean> {
   const result = await db
     .delete(leadsTable)
@@ -193,10 +207,12 @@ export async function deleteLead(id: string): Promise<boolean> {
   return result.length > 0;
 }
 
+/** Truncates the entire leads table. */
 export async function clearLeads(): Promise<void> {
   await db.delete(leadsTable);
 }
 
+/** Returns all leads with status pending or failed (eligible for enrichment). */
 export async function pendingLeads(): Promise<Lead[]> {
   const rows = await db
     .select()

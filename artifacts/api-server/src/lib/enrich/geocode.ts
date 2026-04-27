@@ -16,6 +16,7 @@ export interface GeocodeResult {
 const CENSUS_GEOCODER =
   "https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress";
 
+/** Geocodes a free-form address via the Census Geocoder, returning lat/lon and FIPS codes. */
 export async function geocodeAddress(
   address: string,
 ): Promise<GeocodeResult | null> {

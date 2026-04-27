@@ -79,6 +79,7 @@ const PORTFOLIO_SIZE_TERMS = [
   "billion-dollar",
 ];
 
+/** Computes a [0–100] heuristic lead score from WalkScore, Census, and news signals. */
 export function computeBaseScore(args: {
   walk: WalkScoreData;
   census: CensusData;
@@ -281,6 +282,7 @@ export function computeBaseScore(args: {
   };
 }
 
+/** Converts a numeric score to a hot/warm/cold tier label. */
 export function tierFromScore(score: number): "hot" | "warm" | "cold" {
   if (score >= 75) return "hot";
   if (score >= 50) return "warm";
