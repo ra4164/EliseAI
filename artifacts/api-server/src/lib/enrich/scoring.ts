@@ -85,7 +85,7 @@ export function computeBaseScore(args: {
   census: CensusData;
   news: NewsArticle[];
 }): BaseScore {
-  let score = 50;
+  let score = 30;
   const reasons: string[] = [];
 
   // ────────────────────────────────────────────────────────────
