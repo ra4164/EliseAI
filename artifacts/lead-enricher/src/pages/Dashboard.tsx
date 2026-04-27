@@ -169,23 +169,23 @@ function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
       <div className="flex items-center gap-5 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#E8F0FE" }}>
-            <Clock className="h-4 w-4" style={{ color: "#4880FF" }} />
+            <Clock className="h-4 w-4" style={{ color: "#7638FA" }} />
           </div>
           <div>
-            <span className="font-semibold" style={{ color: "#202224" }}>
+            <span className="font-semibold" style={{ color: "#181819" }}>
               Auto-enriches {schedule.friendlySchedule}
             </span>
-            <span className="ml-1 hidden sm:inline" style={{ color: "#898989" }}>
+            <span className="ml-1 hidden sm:inline" style={{ color: "#6B6580" }}>
               — scores leads, drafts outreach &amp; sales insights
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1" style={{ color: "#898989" }}>
+        <div className="flex items-center gap-1" style={{ color: "#6B6580" }}>
           <span>Next run:</span>
-          <span className="font-semibold ml-1" style={{ color: "#202224" }}>{formatNextRun(schedule.nextRunAt)}</span>
+          <span className="font-semibold ml-1" style={{ color: "#181819" }}>{formatNextRun(schedule.nextRunAt)}</span>
         </div>
         {schedule.lastRunAt && (
-          <div className="flex items-center gap-1" style={{ color: "#898989" }}>
+          <div className="flex items-center gap-1" style={{ color: "#6B6580" }}>
             <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: "#22C55E" }} />
             <span>Last run {formatRelativeTime(schedule.lastRunAt)}</span>
             {schedule.lastRunSucceeded !== null && (
@@ -198,7 +198,7 @@ function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
         onClick={handleTrigger}
         disabled={trigger.isPending || schedule.isRunning}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 shrink-0"
-        style={{ background: "#4880FF" }}
+        style={{ background: "#7638FA" }}
       >
         {trigger.isPending || schedule.isRunning ? (
           <>
@@ -253,17 +253,17 @@ export default function Dashboard() {
         <div className="flex flex-col items-center justify-center py-24 text-center border rounded-2xl border-dashed bg-card">
           <div
             className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white"
-            style={{ background: "#4880FF" }}
+            style={{ background: "#7638FA" }}
           >
             <Database className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No leads yet</h3>
+          <h3 className="text-lg font-semibold" style={{ color: "#181819" }}>No leads yet</h3>
           <p className="text-muted-foreground mb-6 max-w-sm mt-1 text-sm">
             Stats appear here as you upload and enrich leads. Add a single lead
             manually, or upload a CSV to start a batch.
           </p>
           <Link href="/leads/new">
-            <Button style={{ background: "#4880FF" }} className="text-white hover:opacity-90">
+            <Button style={{ background: "#7638FA" }} className="text-white hover:opacity-90">
               <Plus className="h-4 w-4 mr-2" />
               Add Leads
             </Button>
@@ -290,12 +290,12 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Total Leads</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.total}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>{stats.pendingCount} pending enrichment</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Total Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.total}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>{stats.pendingCount} pending enrichment</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F0FE" }}>
-            <Activity className="h-6 w-6" style={{ color: "#4880FF" }} />
+            <Activity className="h-6 w-6" style={{ color: "#7638FA" }} />
           </div>
         </div>
 
@@ -305,9 +305,9 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Hot Leads</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.hotCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Score ≥ 75</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Hot Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.hotCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Score ≥ 75</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF0E6" }}>
             <Flame className="h-6 w-6" style={{ color: "#FF6B35" }} />
@@ -320,9 +320,9 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Warm Leads</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.warmCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Score 50–74</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Warm Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.warmCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Score 50–74</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF9E6" }}>
             <ThermometerSun className="h-6 w-6" style={{ color: "#FFC107" }} />
@@ -335,9 +335,9 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Cold Leads</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.coldCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Score &lt; 50</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Cold Leads</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.coldCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Score &lt; 50</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F5FF" }}>
             <ThermometerSnowflake className="h-6 w-6" style={{ color: "#2196F3" }} />
@@ -352,12 +352,12 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Contacted</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelContactedCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Awaiting reply</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Contacted</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.funnelContactedCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Awaiting reply</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E8F0FE" }}>
-            <Send className="h-6 w-6" style={{ color: "#4880FF" }} />
+            <Send className="h-6 w-6" style={{ color: "#7638FA" }} />
           </div>
         </div>
 
@@ -366,9 +366,9 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Replied</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelRepliedCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Engaged prospects</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Replied</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.funnelRepliedCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Engaged prospects</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF9E6" }}>
             <MessageSquare className="h-6 w-6" style={{ color: "#D97706" }} />
@@ -380,9 +380,9 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "#898989" }}>Call Booked</p>
-            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#202224" }}>{stats.funnelCallBookedCount}</p>
-            <p className="text-xs" style={{ color: "#898989" }}>Ready to close</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Call Booked</p>
+            <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.funnelCallBookedCount}</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Ready to close</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#E6F9F0" }}>
             <PhoneCall className="h-6 w-6" style={{ color: "#16A34A" }} />
@@ -397,17 +397,17 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div className="mb-1">
-            <h3 className="font-semibold text-base" style={{ color: "#202224" }}>Score Distribution</h3>
-            <p className="text-sm mt-0.5" style={{ color: "#898989" }}>
+            <h3 className="font-semibold text-base" style={{ color: "#181819" }}>Score Distribution</h3>
+            <p className="text-sm mt-0.5" style={{ color: "#6B6580" }}>
               Lead scores across the pipeline · Avg:{" "}
-              <span className="font-semibold" style={{ color: "#202224" }}>
+              <span className="font-semibold" style={{ color: "#181819" }}>
                 {stats.averageScore.toFixed(1)}
               </span>
             </p>
           </div>
           <div className="h-[280px] mt-4">
             {stats.enrichedCount === 0 ? (
-              <div className="flex items-center justify-center h-full text-sm" style={{ color: "#898989" }}>
+              <div className="flex items-center justify-center h-full text-sm" style={{ color: "#6B6580" }}>
                 Enrich leads to see the score distribution.
               </div>
             ) : (
@@ -433,16 +433,16 @@ export default function Dashboard() {
                     cursor={{ fill: "rgba(72,128,255,0.06)" }}
                     contentStyle={{
                       backgroundColor: "#ffffff",
-                      borderColor: "#EAECF0",
+                      borderColor: "#E5E0F5",
                       borderRadius: "12px",
-                      color: "#202224",
+                      color: "#181819",
                       fontSize: "13px",
                     }}
                   />
                   <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                     {stats.scoreDistribution.map((entry, index) => {
                       const bucketValue = parseInt(entry.bucket.split("-")[0]!);
-                      let color = "#4880FF";
+                      let color = "#7638FA";
                       if (bucketValue >= 75) color = "#FF6B35";
                       else if (bucketValue >= 50) color = "#FFC107";
                       return <Cell key={`cell-${index}`} fill={color} />;
@@ -460,8 +460,8 @@ export default function Dashboard() {
           style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}
         >
           <div className="mb-4">
-            <h3 className="font-semibold text-base" style={{ color: "#202224" }}>Top Leads</h3>
-            <p className="text-sm mt-0.5" style={{ color: "#898989" }}>Highest scoring prospects</p>
+            <h3 className="font-semibold text-base" style={{ color: "#181819" }}>Top Leads</h3>
+            <p className="text-sm mt-0.5" style={{ color: "#6B6580" }}>Highest scoring prospects</p>
           </div>
           {stats.topLeads.length > 0 ? (
             <div className="space-y-3">
@@ -470,19 +470,19 @@ export default function Dashboard() {
                   key={lead.id}
                   className="flex items-center justify-between gap-3 group py-2 px-3 rounded-xl transition-colors"
                   style={{ background: "transparent" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "#F5F6FA"; }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "#F4F2FF"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                      style={{ background: "#4880FF" }}
+                      style={{ background: "#7638FA" }}
                     >
                       {lead.name[0]}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate" style={{ color: "#202224" }}>{lead.name}</p>
-                      <p className="text-xs truncate" style={{ color: "#898989" }}>{lead.company}</p>
+                      <p className="font-medium text-sm truncate" style={{ color: "#181819" }}>{lead.name}</p>
+                      <p className="text-xs truncate" style={{ color: "#6B6580" }}>{lead.company}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -508,7 +508,7 @@ export default function Dashboard() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Database className="h-8 w-8 mb-3" style={{ color: "#D0D5DD" }} />
-              <p className="text-sm" style={{ color: "#898989" }}>No enriched leads yet.</p>
+              <p className="text-sm" style={{ color: "#6B6580" }}>No enriched leads yet.</p>
             </div>
           )}
         </div>

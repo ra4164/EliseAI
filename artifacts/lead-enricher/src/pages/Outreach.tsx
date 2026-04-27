@@ -403,13 +403,13 @@ export default function Outreach() {
   return (
     <div className="p-8 space-y-5">
       <div className="flex items-center gap-2">
-        <p className="text-sm" style={{ color: "#898989" }}>
+        <p className="text-sm" style={{ color: "#6B6580" }}>
           AI-drafted emails organized by tier. Opens your email client pre-filled.
         </p>
         {totalUnsent > 0 && (
           <span
             className="ml-1 text-xs font-semibold px-2.5 py-0.5 rounded-full"
-            style={{ background: "#E8F0FE", color: "#4880FF" }}
+            style={{ background: "#E8F0FE", color: "#7638FA" }}
           >
             {totalUnsent} ready to send
           </span>
@@ -425,20 +425,20 @@ export default function Outreach() {
       ) : enrichedLeads.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border-2 border-dashed"
-          style={{ borderColor: "#EAECF0", background: "#ffffff" }}
+          style={{ borderColor: "#E5E0F5", background: "#ffffff" }}
         >
-          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#4880FF" }}>
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#7638FA" }}>
             <Mail className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No enriched leads yet</h3>
-          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#898989" }}>
+          <h3 className="text-lg font-semibold" style={{ color: "#181819" }}>No enriched leads yet</h3>
+          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#6B6580" }}>
             Add leads and enrich them (or wait for the 9 AM auto-run) to generate
             draft outreach emails.
           </p>
           <Link href="/leads">
             <button
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-              style={{ background: "#4880FF" }}
+              style={{ background: "#7638FA" }}
             >
               <Plus className="h-4 w-4" />
               Go to Leads

@@ -75,62 +75,62 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* DashStack Design System */
-  /* Background: #F5F6FA (warm off-white gray) */
-  --background: 228 33% 97%;
-  /* Foreground: #202224 (near black) */
-  --foreground: 216 9% 13%;
+  /* EliseAI Design System */
+  /* Background: very light lavender #F5F3FF */
+  --background: 260 40% 97%;
+  /* Foreground: #181819 (EliseAI near-black) */
+  --foreground: 240 4% 9%;
 
   /* Cards: pure white */
   --card: 0 0% 100%;
-  --card-foreground: 216 9% 13%;
-  --card-border: 220 14% 93%;
+  --card-foreground: 240 4% 9%;
+  --card-border: 260 20% 92%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 216 9% 13%;
-  --popover-border: 220 14% 93%;
+  --popover-foreground: 240 4% 9%;
+  --popover-border: 260 20% 92%;
 
-  /* Primary: #4880FF (DashStack blue) */
-  --primary: 222 100% 64%;
+  /* Primary: #7638FA (EliseAI vivid purple) */
+  --primary: 262 94% 58%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary: light gray */
-  --secondary: 220 14% 95%;
-  --secondary-foreground: 216 9% 20%;
+  /* Secondary: light lavender-gray */
+  --secondary: 260 20% 95%;
+  --secondary-foreground: 260 20% 20%;
 
   /* Muted */
-  --muted: 220 14% 94%;
-  --muted-foreground: 216 9% 48%;
+  --muted: 260 16% 94%;
+  --muted-foreground: 260 8% 46%;
 
   /* Accent */
-  --accent: 222 100% 97%;
-  --accent-foreground: 222 100% 40%;
+  --accent: 262 100% 97%;
+  --accent-foreground: 262 94% 38%;
 
   /* Destructive */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  /* Border/Input: #EAECF0 */
-  --border: 220 16% 92%;
-  --input: 220 16% 92%;
-  --ring: 222 100% 64%;
+  /* Border/Input */
+  --border: 260 18% 91%;
+  --input: 260 18% 91%;
+  --ring: 262 94% 58%;
 
   /* Charts */
-  --chart-1: 222 100% 64%;  /* DashStack blue */
+  --chart-1: 262 94% 58%;   /* EliseAI purple */
   --chart-2: 158 64% 52%;   /* Green */
   --chart-3: 32 98% 58%;    /* Orange/amber */
   --chart-4: 0 84% 60%;     /* Red */
-  --chart-5: 263 70% 60%;   /* Purple */
+  --chart-5: 220 80% 60%;   /* Blue */
 
-  /* Sidebar: dark navy #202224 */
-  --sidebar: 216 9% 13%;
+  /* Sidebar: dark purple #1A0B3B */
+  --sidebar: 259 68% 14%;
   --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 216 9% 18%;
-  --sidebar-primary: 222 100% 64%;
+  --sidebar-border: 259 55% 20%;
+  --sidebar-primary: 262 94% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 216 9% 20%;
+  --sidebar-accent: 259 55% 20%;
   --sidebar-accent-foreground: 0 0% 90%;
-  --sidebar-ring: 222 100% 64%;
+  --sidebar-ring: 262 94% 58%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: 'Inter', serif;

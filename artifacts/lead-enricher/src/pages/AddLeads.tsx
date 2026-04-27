@@ -413,12 +413,12 @@ export default function AddLeads() {
         <Link href="/leads">
           <button
             className="flex h-9 w-9 items-center justify-center rounded-xl border transition-colors"
-            style={{ background: "#ffffff", borderColor: "#EAECF0", color: "#6B7280" }}
+            style={{ background: "#ffffff", borderColor: "#E5E0F5", color: "#6B7280" }}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
         </Link>
-        <p className="text-sm" style={{ color: "#898989" }}>
+        <p className="text-sm" style={{ color: "#6B6580" }}>
           Add a single lead, paste a list, or upload a CSV. Bulk uploads are tagged as a batch.
         </p>
       </div>

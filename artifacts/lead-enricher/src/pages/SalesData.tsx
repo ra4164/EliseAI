@@ -156,11 +156,11 @@ export default function SalesData() {
     <div className="p-8 space-y-5">
       {/* Subtitle + filter row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <p className="text-sm" style={{ color: "#898989" }}>
+        <p className="text-sm" style={{ color: "#6B6580" }}>
           Enriched lead metrics — scores, location signals, and market data at a glance.
         </p>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Filter className="h-4 w-4 shrink-0" style={{ color: "#898989" }} />
+          <Filter className="h-4 w-4 shrink-0" style={{ color: "#6B6580" }} />
           {tierButtons.map(({ key, label, count, icon }) => (
             <button
               key={key}
@@ -168,8 +168,8 @@ export default function SalesData() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all"
               style={
                 tierFilter === key
-                  ? { background: "#4880FF", color: "#ffffff" }
-                  : { background: "#F5F6FA", color: "#898989" }
+                  ? { background: "#7638FA", color: "#ffffff" }
+                  : { background: "#F4F2FF", color: "#6B6580" }
               }
             >
               {icon}
@@ -204,19 +204,19 @@ export default function SalesData() {
       ) : enrichedLeads.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border-2 border-dashed"
-          style={{ borderColor: "#EAECF0", background: "#ffffff" }}
+          style={{ borderColor: "#E5E0F5", background: "#ffffff" }}
         >
-          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#4880FF" }}>
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4 text-white" style={{ background: "#7638FA" }}>
             <BarChart3 className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-semibold" style={{ color: "#202224" }}>No enriched leads yet</h3>
-          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#898989" }}>
+          <h3 className="text-lg font-semibold" style={{ color: "#181819" }}>No enriched leads yet</h3>
+          <p className="text-sm mb-6 max-w-sm mt-1" style={{ color: "#6B6580" }}>
             Add leads and enrich them to see their sales data here.
           </p>
           <Link href="/leads">
             <button
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-              style={{ background: "#4880FF" }}
+              style={{ background: "#7638FA" }}
             >
               Go to Leads
             </button>
@@ -226,17 +226,17 @@ export default function SalesData() {
         <div className="rounded-2xl overflow-x-auto" style={{ background: "#ffffff", boxShadow: "0px 4px 20px 0px rgba(0,0,0,0.06)" }}>
           <Table>
             <TableHeader>
-              <TableRow style={{ background: "#F5F6FA" }}>
-                <TableHead className="min-w-[180px]" style={{ color: "#898989" }}>Lead</TableHead>
-                <TableHead style={{ color: "#898989" }}>Location</TableHead>
-                <TableHead style={{ color: "#898989" }}>Score</TableHead>
-                <TableHead style={{ color: "#898989" }}>Tier</TableHead>
-                <TableHead className="min-w-[90px]" style={{ color: "#898989" }}>Walk Score</TableHead>
-                <TableHead className="min-w-[90px]" style={{ color: "#898989" }}>Transit</TableHead>
-                <TableHead style={{ color: "#898989" }}>Renter %</TableHead>
-                <TableHead style={{ color: "#898989" }}>Median Rent</TableHead>
-                <TableHead style={{ color: "#898989" }}>News</TableHead>
-                <TableHead className="text-right min-w-[120px]" style={{ color: "#898989" }}>Outreach</TableHead>
+              <TableRow style={{ background: "#F4F2FF" }}>
+                <TableHead className="min-w-[180px]" style={{ color: "#6B6580" }}>Lead</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>Location</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>Score</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>Tier</TableHead>
+                <TableHead className="min-w-[90px]" style={{ color: "#6B6580" }}>Walk Score</TableHead>
+                <TableHead className="min-w-[90px]" style={{ color: "#6B6580" }}>Transit</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>Renter %</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>Median Rent</TableHead>
+                <TableHead style={{ color: "#6B6580" }}>News</TableHead>
+                <TableHead className="text-right min-w-[120px]" style={{ color: "#6B6580" }}>Outreach</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

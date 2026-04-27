@@ -18,7 +18,7 @@ function UnsentBadge() {
   ).length;
   if (count === 0) return null;
   return (
-    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#4880FF] text-[10px] font-bold text-white px-1">
+    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#7638FA] text-[10px] font-bold text-white px-1">
       {count}
     </span>
   );
@@ -42,14 +42,13 @@ export function Sidebar() {
 
   return (
     <aside
-      className="flex flex-col w-[260px] shrink-0 h-screen sticky top-0 overflow-y-auto z-30"
-      style={{ background: "#202224" }}
+      className="flex flex-col w-[260px] shrink-0 h-screen sticky top-0 overflow-y-auto z-30 bg-sidebar"
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 h-[70px] shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm"
-          style={{ background: "#4880FF" }}
+          style={{ background: "#7638FA" }}
         >
           <Building2 className="h-5 w-5" />
         </div>
@@ -64,7 +63,7 @@ export function Sidebar() {
         <Link href="/leads/new">
           <button
             className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-            style={{ background: "#4880FF" }}
+            style={{ background: "#7638FA" }}
           >
             <Plus className="h-4 w-4" />
             Add Leads
@@ -95,7 +94,7 @@ export function Sidebar() {
                 }`}
                 style={
                   isActive
-                    ? { background: "#4880FF", color: "#ffffff" }
+                    ? { background: "#7638FA", color: "#ffffff" }
                     : { color: "rgba(255,255,255,0.6)" }
                 }
                 onMouseEnter={(e) => {
@@ -146,7 +145,7 @@ export function Sidebar() {
         <div className="mt-3 px-3 flex items-center gap-2.5">
           <div
             className="flex h-7 w-7 items-center justify-center rounded-full text-white text-[11px] font-bold shrink-0"
-            style={{ background: "#4880FF" }}
+            style={{ background: "#7638FA" }}
           >
             R
           </div>

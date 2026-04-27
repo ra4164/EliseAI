@@ -37,44 +37,44 @@ function TopHeader() {
       style={{
         height: "70px",
         background: "#ffffff",
-        borderBottom: "1px solid #EAECF0",
+        borderBottom: "1px solid #E5E0F5",
       }}
     >
-      <h2 className="font-semibold text-[18px]" style={{ color: "#202224" }}>
+      <h2 className="font-semibold text-[18px]" style={{ color: "#181819" }}>
         {title}
       </h2>
       <div className="flex items-center gap-3">
         <button
           className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
-          style={{ background: "#F5F6FA", color: "#6B7280" }}
+          style={{ background: "#F4F2FF", color: "#6B7280" }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "#EAECF0";
+            (e.currentTarget as HTMLButtonElement).style.background = "#E5E0F5";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "#F5F6FA";
+            (e.currentTarget as HTMLButtonElement).style.background = "#F4F2FF";
           }}
         >
           <Search className="h-4 w-4" />
         </button>
         <button
           className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
-          style={{ background: "#F5F6FA", color: "#6B7280" }}
+          style={{ background: "#F4F2FF", color: "#6B7280" }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "#EAECF0";
+            (e.currentTarget as HTMLButtonElement).style.background = "#E5E0F5";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "#F5F6FA";
+            (e.currentTarget as HTMLButtonElement).style.background = "#F4F2FF";
           }}
         >
           <Bell className="h-4 w-4" />
           <span
             className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full"
-            style={{ background: "#4880FF" }}
+            style={{ background: "#7638FA" }}
           />
         </button>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-xl font-semibold text-sm text-white shrink-0 cursor-pointer"
-          style={{ background: "#4880FF" }}
+          style={{ background: "#7638FA" }}
         >
           R
         </div>

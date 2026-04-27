@@ -246,7 +246,7 @@ export default function LeadDetail() {
                 <option value="lost">Lost</option>
               </select>
               {lead.funnelStatusUpdatedAt && (
-                <span className="text-xs" style={{ color: "#898989" }}>
+                <span className="text-xs" style={{ color: "#6B6580" }}>
                   Updated {format(new Date(lead.funnelStatusUpdatedAt), "MMM d, yyyy 'at' h:mm a")}
                 </span>
               )}
