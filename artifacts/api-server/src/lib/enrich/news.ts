@@ -3,12 +3,27 @@ import type { NewsArticle } from "@workspace/api-zod";
 
 const NEWS_API_KEY = process.env["NEWS_API_KEY"];
 
-const REAL_ESTATE_CONTEXT =
-  `(apartment OR multifamily OR "real estate" OR residential OR properties OR leasing OR REIT OR housing OR "property management")`;
+const REAL_ESTATE_TERMS = [
+  "apartment",
+  "multifamily",
+  "real estate",
+  "residential",
+  "properties",
+  "leasing",
+  "reit",
+  "housing",
+  "property management",
+  "rent",
+  "rental",
+];
+
+const REAL_ESTATE_CONTEXT = `(apartment OR multifamily OR "real estate" OR residential OR properties OR leasing OR REIT OR housing OR "property management" OR rent OR rental)`;
 
 /**
- * Fetches recent news articles about a company, filtered to real estate context or location.
- * Results are post-filtered to ensure the company name appears in the title or description.
+ * Fetches recent news relevant to a company or its local real estate market.
+ * Returns articles that are either:
+ *   1. About the company (company name in title/description), or
+ *   2. About the local market (city + real estate keyword in title/description).
  */
 export async function fetchNews(
   companyName: string,
@@ -17,8 +32,7 @@ export async function fetchNews(
 ): Promise<NewsArticle[]> {
   if (!NEWS_API_KEY) return [];
 
-  const locationContext = `("${city}" OR "${state}")`;
-  const q = `"${companyName}" AND (${REAL_ESTATE_CONTEXT} OR ${locationContext})`;
+  const q = `"${companyName}" OR ("${city}" AND ${REAL_ESTATE_CONTEXT})`;
 
   const url = new URL("https://newsapi.org/v2/everything");
   url.searchParams.set("q", q);
@@ -46,9 +60,18 @@ export async function fetchNews(
     };
 
     const nameLower = companyName.toLowerCase();
+    const cityLower = city.toLowerCase();
+    const stateLower = state.toLowerCase();
+
     const relevant = (json.articles ?? []).filter((a) => {
       const haystack = `${a.title} ${a.description ?? ""}`.toLowerCase();
-      return haystack.includes(nameLower);
+      const hasCompany = haystack.includes(nameLower);
+      const hasLocation =
+        haystack.includes(cityLower) || haystack.includes(stateLower);
+      const hasRealEstate = REAL_ESTATE_TERMS.some((t) =>
+        haystack.includes(t),
+      );
+      return hasCompany || (hasLocation && hasRealEstate);
     });
 
     return relevant.slice(0, 5).map((a) => ({
