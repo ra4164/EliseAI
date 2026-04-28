@@ -78,7 +78,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   if (!census.medianHouseholdIncome && !census.totalPopulation) {
     warnings.push("Census ACS data unavailable for this address");
   }
-  if (walk.walk === null) warnings.push("WalkScore unavailable for this address");
+
   if (news.length === 0) warnings.push("No recent news found for this company");
 
   const base = computeBaseScore({ walk, census, news });
