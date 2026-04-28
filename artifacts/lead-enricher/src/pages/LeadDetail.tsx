@@ -593,19 +593,6 @@ export default function LeadDetail() {
               </div>
             )}
 
-            {e.warnings && e.warnings.length > 0 && (
-              <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
-                <CardContent className="p-4">
-                  <p className="text-sm font-medium text-yellow-800 mb-2">Enrichment Warnings</p>
-                  <ul className="space-y-1">
-                    {e.warnings.map((w, i) => (
-                      <li key={i} className="text-xs text-yellow-700">• {w}</li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
             <div className="text-xs text-muted-foreground text-right">
               Enriched {format(new Date(e.enrichedAt), "MMM d, yyyy 'at' h:mm a")}
             </div>
