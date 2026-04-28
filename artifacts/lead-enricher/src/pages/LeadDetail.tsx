@@ -46,8 +46,14 @@ import { Textarea } from "@/components/ui/textarea";
 function detectNewsSignal(
   title: string,
   description: string | null,
+  city: string,
+  state: string,
 ): { label: string; color: string } | null {
   const text = `${title} ${description ?? ""}`.toLowerCase();
+  const cityL = city.toLowerCase();
+  const stateL = state.toLowerCase();
+  const isLocal = text.includes(cityL) || text.includes(stateL);
+  if (!isLocal) return null;
   if (/\b(fund|funding|funded|raises|raised|series [a-d]|venture|ipo|going public|backed|capital raise)\b/.test(text))
     return { label: "Funding", color: "bg-emerald-100 text-emerald-700" };
   if (/\b(hiring|hires|hired|jobs|workforce|headcount|talent|recrui)\b/.test(text))
@@ -400,7 +406,7 @@ export default function LeadDetail() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {e.news.slice(0, 4).map((item, i) => {
-                    const signal = detectNewsSignal(item.title, item.description);
+                    const signal = detectNewsSignal(item.title, item.description, lead.city, lead.state);
                     return (
                       <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="block group">
                         <Card className="h-full transition-colors group-hover:border-primary/50">
