@@ -1,8 +1,4 @@
-import type {
-  CensusData,
-  WalkScoreData,
-  NewsArticle,
-} from "@workspace/api-zod";
+import type { CensusData, NewsArticle } from "@workspace/api-zod";
 
 /**
  * RMA Lead Scoring Model — assumptions documented inline.
@@ -76,9 +72,8 @@ const PORTFOLIO_SIZE_TERMS = [
   "billion-dollar",
 ];
 
-/** Computes a [0–100] heuristic lead score from WalkScore, Census, and news signals. */
+/** Computes a [0–100] heuristic lead score from Census and news signals. */
 export function computeBaseScore(args: {
-  walk: WalkScoreData;
   census: CensusData;
   news: NewsArticle[];
 }): BaseScore {
