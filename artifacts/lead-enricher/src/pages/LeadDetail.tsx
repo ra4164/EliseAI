@@ -540,7 +540,7 @@ export default function LeadDetail() {
 
           {/* ── ENRICHED DATA ── */}
           <TabsContent value="data" className="pt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
               <Card>
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -567,30 +567,6 @@ export default function LeadDetail() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <MapPin className="h-4 w-4" /> WalkScore
-                  </CardTitle>
-                  <CardDescription>{lead.propertyAddress}, {lead.city}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {[
-                    { label: "Walk Score", score: e.walkScore.walk, desc: e.walkScore.walkDescription },
-                    { label: "Transit Score", score: e.walkScore.transit, desc: e.walkScore.transitDescription },
-                    { label: "Bike Score", score: e.walkScore.bike, desc: e.walkScore.bikeDescription },
-                  ].map(({ label, score, desc }) => (
-                    <div key={label}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{label}</span>
-                        <span className="text-sm font-bold">{score ?? "N/A"}</span>
-                      </div>
-                      {score != null && <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1"><div className="h-full bg-primary rounded-full" style={{ width: `${score}%` }} /></div>}
-                      <p className="text-xs text-muted-foreground">{desc}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
             </div>
 
             {e.news && e.news.length > 0 && (
@@ -642,7 +618,7 @@ export default function LeadDetail() {
           </div>
           <h3 className="text-xl font-semibold mb-2">Ready to Enrich</h3>
           <p className="text-muted-foreground mb-2 text-balance">
-            Enrichment pulls Census demographics, WalkScore, recent company news, and uses AI to generate a <strong>lead score</strong>, <strong>sales insights</strong>, <strong>talking points</strong>, and a <strong>personalized outreach email</strong>.
+            Enrichment pulls Census demographics, recent company news, and uses AI to generate a <strong>lead score</strong>, <strong>sales insights</strong>, <strong>talking points</strong>, and a <strong>personalized outreach email</strong>.
           </p>
           <p className="text-sm text-muted-foreground mb-8">
             Runs automatically at <strong>9:00 AM daily</strong> — or trigger it now.
