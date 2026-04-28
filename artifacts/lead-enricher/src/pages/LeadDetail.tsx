@@ -31,6 +31,8 @@ import {
   Database,
   FileText,
   BarChart3,
+  Pencil,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -50,9 +52,9 @@ function detectNewsSignal(
   state: string,
 ): { label: string; color: string } | null {
   const text = `${title} ${description ?? ""}`.toLowerCase();
-  const cityL = city.toLowerCase();
-  const stateL = state.toLowerCase();
-  const isLocal = text.includes(cityL) || text.includes(stateL);
+  const cityL = (city ?? "").toLowerCase();
+  const stateL = (state ?? "").toLowerCase();
+  const isLocal = (cityL && text.includes(cityL)) || (stateL && text.includes(stateL));
   if (!isLocal) return null;
   if (/\b(fund|funding|funded|raises|raised|series [a-d]|venture|ipo|going public|backed|capital raise)\b/.test(text))
     return { label: "Funding", color: "bg-emerald-100 text-emerald-700" };
@@ -90,6 +92,10 @@ export default function LeadDetail() {
   const [activeTab, setActiveTab] = useState("overview");
   const [notes, setNotes] = useState<string>("");
   const [notesSaved, setNotesSaved] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editedSubject, setEditedSubject] = useState("");
+  const [editedBody, setEditedBody] = useState("");
+  const [showSentConfirm, setShowSentConfirm] = useState(false);
 
   const { data: lead, isLoading, isError } = useGetLead(leadId || "", {
     query: {
@@ -109,6 +115,14 @@ export default function LeadDetail() {
   useEffect(() => {
     if (lead?.notes != null) setNotes(lead.notes);
   }, [lead?.notes]);
+
+  // Sync editable email content when enrichment loads
+  useEffect(() => {
+    if (lead?.enrichment?.outreachEmail) {
+      setEditedSubject(lead.enrichment.outreachEmail.subject);
+      setEditedBody(lead.enrichment.outreachEmail.body);
+    }
+  }, [lead?.enrichment?.outreachEmail]);
 
   const handleEnrich = () => {
     if (!leadId) return;
@@ -138,20 +152,24 @@ export default function LeadDetail() {
 
   const handleApproveAndSend = () => {
     if (!lead?.enrichment?.outreachEmail || !leadId) return;
-    const { subject, body } = lead.enrichment.outreachEmail;
-    window.location.href = buildMailtoUrl(lead.email, subject, body);
-    setTimeout(() => {
-      updateLeadMut.mutate(
-        { leadId, data: { outreachSentAt: new Date().toISOString() } },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
-            queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-            toast.success("Marked as sent");
-          },
+    window.location.href = buildMailtoUrl(lead.email, editedSubject, editedBody);
+    setTimeout(() => setShowSentConfirm(true), 800);
+  };
+
+  const handleConfirmSent = () => {
+    if (!leadId) return;
+    setShowSentConfirm(false);
+    updateLeadMut.mutate(
+      { leadId, data: { outreachSentAt: new Date().toISOString(), funnelStatus: "contacted" } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+          toast.success("Status updated to Contacted");
         },
-      );
-    }, 1000);
+      },
+    );
   };
 
   const handleUnsend = () => {
@@ -445,6 +463,9 @@ export default function LeadDetail() {
                     <CardDescription>AI-generated, personalized for {lead.name} at {lead.company}</CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingEmail((v) => !v)}>
+                      {editingEmail ? <><X className="h-4 w-4 mr-1.5" />Cancel</> : <><Pencil className="h-4 w-4 mr-1.5" />Edit</>}
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleCopyEmail}>
                       {copiedEmail ? <Check className="h-4 w-4 mr-1.5 text-emerald-500" /> : <Copy className="h-4 w-4 mr-1.5" />}
                       {copiedEmail ? "Copied" : "Copy"}
@@ -467,19 +488,56 @@ export default function LeadDetail() {
                     Sent on {format(new Date(lead.outreachSentAt!), "MMMM d, yyyy 'at' h:mm a")}
                   </div>
                 )}
+                {showSentConfirm && (
+                  <div className="mt-3 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
+                    <span className="text-sm font-medium text-amber-800">Did you send it?</span>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100" onClick={() => setShowSentConfirm(false)}>
+                        No
+                      </Button>
+                      <Button size="sm" className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white" onClick={handleConfirmSent}>
+                        Yes — mark as contacted
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="bg-white dark:bg-black border rounded-md p-6 font-serif text-base leading-relaxed shadow-sm">
-                  <div className="mb-6 pb-4 border-b border-border/50">
-                    <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-widest mr-3">To:</span>
-                    <span className="text-sm text-muted-foreground">{lead.email}</span>
+                {editingEmail ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block mb-1.5">Subject</label>
+                      <input
+                        className="w-full border rounded-md px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 bg-background"
+                        value={editedSubject}
+                        onChange={(e) => setEditedSubject(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block mb-1.5">Body</label>
+                      <Textarea
+                        className="w-full min-h-[280px] text-sm font-serif leading-relaxed resize-y"
+                        value={editedBody}
+                        onChange={(e) => setEditedBody(e.target.value)}
+                      />
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setEditingEmail(false)}>
+                      <Check className="h-4 w-4 mr-1.5 text-emerald-500" /> Done editing
+                    </Button>
                   </div>
-                  <div className="mb-6 pb-4 border-b border-border/50">
-                    <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-widest mr-3">Subject:</span>
-                    <span className="font-bold text-foreground">{e.outreachEmail.subject}</span>
+                ) : (
+                  <div className="bg-white dark:bg-black border rounded-md p-6 font-serif text-base leading-relaxed shadow-sm">
+                    <div className="mb-6 pb-4 border-b border-border/50">
+                      <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-widest mr-3">To:</span>
+                      <span className="text-sm text-muted-foreground">{lead.email}</span>
+                    </div>
+                    <div className="mb-6 pb-4 border-b border-border/50">
+                      <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-widest mr-3">Subject:</span>
+                      <span className="font-bold text-foreground">{editedSubject || e.outreachEmail.subject}</span>
+                    </div>
+                    <div className="whitespace-pre-wrap text-foreground/90">{editedBody || e.outreachEmail.body}</div>
                   </div>
-                  <div className="whitespace-pre-wrap text-foreground/90">{e.outreachEmail.body}</div>
-                </div>
+                )}
               </CardContent>
             </Card>
 

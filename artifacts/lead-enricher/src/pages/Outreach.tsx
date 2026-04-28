@@ -36,7 +36,7 @@ const TIER_META: Record<
   hot: {
     label: "Hot",
     icon: <Flame className="h-4 w-4 text-orange-500" />,
-    hint: "Score ≥ 75 — Direct & urgent tone. Reference growth signals and recent news. Propose a specific demo time.",
+    hint: "Score ≥ 70 — Direct & urgent tone. Reference growth signals and recent news. Propose a specific demo time.",
     color: "text-orange-600",
   },
   warm: {

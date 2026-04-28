@@ -300,7 +300,7 @@ export default function Dashboard() {
           <div>
             <p className="text-sm font-medium mb-2" style={{ color: "#6B6580" }}>Hot Leads</p>
             <p className="text-[32px] font-bold leading-none mb-2" style={{ color: "#181819" }}>{stats.hotCount}</p>
-            <p className="text-xs" style={{ color: "#6B6580" }}>Score ≥ 75</p>
+            <p className="text-xs" style={{ color: "#6B6580" }}>Score ≥ 70</p>
           </div>
           <div className="shrink-0 h-[52px] w-[52px] rounded-xl flex items-center justify-center" style={{ background: "#FFF0E6" }}>
             <Flame className="h-6 w-6" style={{ color: "#FF6B35" }} />
