@@ -363,8 +363,6 @@ export default function LeadDetail() {
                     ["Median Rent", e.census.medianGrossRent ? `$${e.census.medianGrossRent.toLocaleString()}` : "—"],
                     ["Median Income", e.census.medianHouseholdIncome ? `$${e.census.medianHouseholdIncome.toLocaleString()}` : "—"],
                     ["Population", e.census.totalPopulation ? e.census.totalPopulation.toLocaleString() : "—"],
-                    ["Walk Score", e.walkScore.walk != null ? `${e.walkScore.walk} — ${e.walkScore.walkDescription}` : "—"],
-                    ["Transit Score", e.walkScore.transit != null ? `${e.walkScore.transit} — ${e.walkScore.transitDescription}` : "—"],
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between items-start py-1.5 border-b border-border/40 last:border-0">
                       <span className="text-sm text-muted-foreground">{label}</span>

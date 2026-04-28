@@ -224,37 +224,6 @@ export function computeBaseScore(args: {
   }
 
   // ────────────────────────────────────────────────────────────
-  // 6) WALKABILITY / TRANSIT (max +7 / min −10)
-  //    Assumption: walkable, transit-rich neighborhoods are where
-  //    multifamily concentrates and where renters expect 24/7
-  //    digital interaction with leasing offices.
-  // ────────────────────────────────────────────────────────────
-  const w = args.walk.walk;
-  if (w !== null) {
-    if (w >= 90) {
-      score += 5;
-      reasons.push(`+5 Walker's paradise (${w}) — dense urban submarket`);
-    } else if (w >= 70) {
-      score += 3;
-      reasons.push(`+3 Very walkable (${w})`);
-    } else if (w >= 50) {
-      score += 1;
-      reasons.push(`+1 Somewhat walkable (${w})`);
-    } else if (w >= 25) {
-      score -= 4;
-      reasons.push(`−4 Car-dependent area (walk score ${w})`);
-    } else {
-      score -= 10;
-      reasons.push(`−10 Rural / very car-dependent (walk score ${w})`);
-    }
-  }
-  const t = args.walk.transit;
-  if (t !== null && t >= 60) {
-    score += 2;
-    reasons.push(`+2 Strong transit access (${t})`);
-  }
-
-  // ────────────────────────────────────────────────────────────
   // 7) MARKET SIZE / POPULATION (max +5 / min −7)
   //    Assumption: large MSAs have more multifamily inventory and
   //    a deeper pool of competing properties, increasing the value
