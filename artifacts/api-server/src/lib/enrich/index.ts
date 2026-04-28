@@ -61,7 +61,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
           bachelorsOrHigherPct: null,
           placeName: null,
         }),
-    fetchNews(lead.company),
+    fetchNews(lead.company, lead.city, lead.state),
   ]);
 
   if (!census.medianHouseholdIncome && !census.totalPopulation) {

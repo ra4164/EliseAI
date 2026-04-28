@@ -7,14 +7,21 @@ const REAL_ESTATE_CONTEXT =
   `(apartment OR multifamily OR "real estate" OR residential OR properties OR leasing OR REIT OR housing OR "property management")`;
 
 /**
- * Fetches recent news articles about a company, filtered to real estate context.
+ * Fetches recent news articles about a company, filtered to real estate context or location.
  * Results are post-filtered to ensure the company name appears in the title or description.
  */
-export async function fetchNews(companyName: string): Promise<NewsArticle[]> {
+export async function fetchNews(
+  companyName: string,
+  city: string,
+  state: string,
+): Promise<NewsArticle[]> {
   if (!NEWS_API_KEY) return [];
 
+  const locationContext = `("${city}" OR "${state}")`;
+  const q = `"${companyName}" AND (${REAL_ESTATE_CONTEXT} OR ${locationContext})`;
+
   const url = new URL("https://newsapi.org/v2/everything");
-  url.searchParams.set("q", `"${companyName}" AND ${REAL_ESTATE_CONTEXT}`);
+  url.searchParams.set("q", q);
   url.searchParams.set("sortBy", "publishedAt");
   url.searchParams.set("language", "en");
   url.searchParams.set("pageSize", "10");
