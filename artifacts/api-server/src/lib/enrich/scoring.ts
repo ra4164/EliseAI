@@ -16,11 +16,9 @@ import type {
  *      assistant; growing companies have buying urgency and CapEx headroom).
  *   3. The market has high rent-per-unit
  *      (higher revenue at risk per missed lead → faster ROI on automation).
- *   4. The neighborhood is dense / walkable / transit-rich
- *      (these are the urban infill submarkets where multifamily concentrates).
  *
- * Scoring: starts at 50 (neutral) and applies weighted adjustments. Final
- * value is clamped to [0, 100]. Each adjustment emits a human-readable
+ * Scoring: starts at 30 (cold-leaning default) and applies weighted adjustments.
+ * Final value is clamped to [0, 100]. Each adjustment emits a human-readable
  * "reason" so SDRs can see exactly why a score landed where it did.
  *
  * Weight budget (max contribution if every signal is at its best):
@@ -29,11 +27,10 @@ import type {
  *   - Recent growth mentions (news)      : +15  ←  buying urgency signal
  *   - Rent revenue at stake (Census)     : +10
  *   - Median household income (Census)   :  +8
- *   - Walkability / transit (WalkScore)  :  +7
  *   - Market size / population (Census)  :  +5
  *   ----------------------------------------
- *   Total upside from base 50            : +90  → caps at 100
- *   Negative pull-down for poor fit      : up to −35
+ *   Total upside from base 30            : +83  → caps at 100
+ *   Negative pull-down for poor fit      : up to −25
  */
 export interface BaseScore {
   score: number;
