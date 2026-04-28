@@ -43,6 +43,26 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
+function detectNewsSignal(
+  title: string,
+  description: string | null,
+): { label: string; color: string } | null {
+  const text = `${title} ${description ?? ""}`.toLowerCase();
+  if (/\b(fund|funding|funded|raises|raised|series [a-d]|venture|ipo|going public|backed|capital raise)\b/.test(text))
+    return { label: "Funding", color: "bg-emerald-100 text-emerald-700" };
+  if (/\b(hiring|hires|hired|jobs|workforce|headcount|talent|recrui)\b/.test(text))
+    return { label: "Hiring", color: "bg-blue-100 text-blue-700" };
+  if (/\b(layoff|layoffs|cutting|cuts|reduction|downsiz|let go|job loss)\b/.test(text))
+    return { label: "Layoffs", color: "bg-red-100 text-red-700" };
+  if (/\b(acqui|merger|merges|joint venture|partnership|deal)\b/.test(text))
+    return { label: "Deal", color: "bg-amber-100 text-amber-700" };
+  if (/\b(expan|grow|growth|opening|opens|launch|new community|new property|groundbreak|breaks ground)\b/.test(text))
+    return { label: "Growth", color: "bg-purple-100 text-purple-700" };
+  if (/\b(rent|rental|housing|multifamily|apartment|vacancy|demand|leasing|reit)\b/.test(text))
+    return { label: "Market", color: "bg-slate-100 text-slate-600" };
+  return null;
+}
+
 function buildMailtoUrl(email: string, subject: string, body: string): string {
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
@@ -379,19 +399,27 @@ export default function LeadDetail() {
                   <Newspaper className="h-4 w-4" /> Recent News
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {e.news.slice(0, 4).map((item, i) => (
-                    <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="block group">
-                      <Card className="h-full transition-colors group-hover:border-primary/50">
-                        <CardContent className="p-4 space-y-1.5">
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{item.source}</span>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(item.publishedAt), "MMM d")}</span>
-                          </div>
-                          <p className="font-medium text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">{item.title}</p>
-                        </CardContent>
-                      </Card>
-                    </a>
-                  ))}
+                  {e.news.slice(0, 4).map((item, i) => {
+                    const signal = detectNewsSignal(item.title, item.description);
+                    return (
+                      <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="block group">
+                        <Card className="h-full transition-colors group-hover:border-primary/50">
+                          <CardContent className="p-4 space-y-1.5">
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{item.source}</span>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(item.publishedAt), "MMM d")}</span>
+                            </div>
+                            <p className="font-medium text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">{item.title}</p>
+                            {signal && (
+                              <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${signal.color}`}>
+                                {signal.label}
+                              </span>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
