@@ -231,7 +231,7 @@ export default function SalesData() {
               {filtered.map((lead) => {
                 const e = lead.enrichment!;
                 const renterPct = e.census.renterOccupiedPct != null
-                  ? `${(e.census.renterOccupiedPct * 100).toFixed(0)}%`
+                  ? `${e.census.renterOccupiedPct.toFixed(1)}%`
                   : "—";
                 const medianRent = e.census.medianGrossRent != null
                   ? `$${e.census.medianGrossRent.toLocaleString()}`
