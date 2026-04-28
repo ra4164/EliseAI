@@ -95,7 +95,6 @@ export default function LeadDetail() {
   const [editingEmail, setEditingEmail] = useState(false);
   const [editedSubject, setEditedSubject] = useState("");
   const [editedBody, setEditedBody] = useState("");
-  const [showSentConfirm, setShowSentConfirm] = useState(false);
 
   const { data: lead, isLoading, isError } = useGetLead(leadId || "", {
     query: {
@@ -153,23 +152,19 @@ export default function LeadDetail() {
   const handleApproveAndSend = () => {
     if (!lead?.enrichment?.outreachEmail || !leadId) return;
     window.location.href = buildMailtoUrl(lead.email, editedSubject, editedBody);
-    setTimeout(() => setShowSentConfirm(true), 800);
-  };
-
-  const handleConfirmSent = () => {
-    if (!leadId) return;
-    setShowSentConfirm(false);
-    updateLeadMut.mutate(
-      { leadId, data: { outreachSentAt: new Date().toISOString(), funnelStatus: "contacted" } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
-          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
-          toast.success("Status updated to Contacted");
+    setTimeout(() => {
+      updateLeadMut.mutate(
+        { leadId, data: { outreachSentAt: new Date().toISOString(), funnelStatus: "contacted" } },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+            queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getGetLeadStatsQueryKey() });
+            toast.success("Marked as sent · Status set to Contacted");
+          },
         },
-      },
-    );
+      );
+    }, 800);
   };
 
   const handleUnsend = () => {
@@ -486,19 +481,6 @@ export default function LeadDetail() {
                   <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 rounded-md px-3 py-2">
                     <CheckCircle2 className="h-4 w-4" />
                     Sent on {format(new Date(lead.outreachSentAt!), "MMMM d, yyyy 'at' h:mm a")}
-                  </div>
-                )}
-                {showSentConfirm && (
-                  <div className="mt-3 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
-                    <span className="text-sm font-medium text-amber-800">Did you send it?</span>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100" onClick={() => setShowSentConfirm(false)}>
-                        No
-                      </Button>
-                      <Button size="sm" className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white" onClick={handleConfirmSent}>
-                        Yes — mark as contacted
-                      </Button>
-                    </div>
                   </div>
                 )}
               </CardHeader>
