@@ -245,7 +245,7 @@ export function computeBaseScore(args: {
 
 /** Converts a numeric score to a hot/warm/cold tier label. */
 export function tierFromScore(score: number): "hot" | "warm" | "cold" {
-  if (score >= 75) return "hot";
+  if (score >= 70) return "hot";
   if (score >= 50) return "warm";
   return "cold";
 }
