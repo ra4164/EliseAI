@@ -3,6 +3,7 @@ import { logger } from "../logger";
 import { geocodeAddress } from "./geocode";
 import { fetchCensusData } from "./census";
 import { fetchNews } from "./news";
+import { generateInsights } from "./gemini";
 import { computeBaseScore, tierFromScore } from "./scoring";
 
 /** Extracts the first word from a full name. */
@@ -40,7 +41,7 @@ function buildTemplateEmail(
   };
 }
 
-/** Runs the full enrichment pipeline: geocode → Census → news → score. */
+/** Runs the full enrichment pipeline: geocode → Census → news → AI → score. */
 export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   const warnings: string[] = [];
   const fullAddress = `${lead.propertyAddress}, ${lead.city}, ${lead.state}`;
@@ -70,15 +71,50 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   if (news.length === 0) warnings.push("No recent news found for this company");
 
   const base = computeBaseScore({ census, news });
-  const tier = tierFromScore(base.score);
-  const outreachEmail = buildTemplateEmail(lead, tier);
+  const baseTier = tierFromScore(base.score);
+
+  let aiInsights = await generateInsights({
+    lead: {
+      name: lead.name,
+      email: lead.email,
+      company: lead.company,
+      propertyAddress: lead.propertyAddress,
+      city: lead.city,
+      state: lead.state,
+      country: lead.country,
+    },
+    repNotes: lead.notes,
+    census,
+    news,
+    baseScore: base.score,
+    baseReasons: base.reasons,
+    tier: baseTier,
+  });
+
+  if (!aiInsights) {
+    warnings.push("AI insights unavailable — showing heuristic data only");
+    aiInsights = {
+      scoreAdjustment: 0,
+      scoreReasons: [],
+      salesInsights: buildFallbackInsights(lead, census, news),
+      talkingPoints: buildFallbackTalkingPoints(lead, census),
+    };
+  }
+
+  const adjusted = Math.max(
+    0,
+    Math.min(100, Math.round(base.score + aiInsights.scoreAdjustment)),
+  );
+
+  const finalTier = tierFromScore(adjusted);
+  const outreachEmail = buildTemplateEmail(lead, finalTier);
 
   const enrichment: LeadEnrichment = {
-    score: base.score,
-    tier,
-    scoreReasons: base.reasons,
-    salesInsights: buildFallbackInsights(lead, census, news),
-    talkingPoints: buildFallbackTalkingPoints(lead, census),
+    score: adjusted,
+    tier: finalTier,
+    scoreReasons: [...base.reasons, ...aiInsights.scoreReasons],
+    salesInsights: aiInsights.salesInsights,
+    talkingPoints: aiInsights.talkingPoints,
     outreachEmail,
     walkScore: {
       walk: null,
@@ -107,7 +143,7 @@ export async function enrichLead(lead: Lead): Promise<LeadEnrichment> {
   return enrichment;
 }
 
-/** Generates heuristic sales insights from Census and news data. */
+/** Generates heuristic sales insights from Census and news data when AI is unavailable. */
 function buildFallbackInsights(
   lead: Lead,
   census: {
@@ -128,7 +164,7 @@ function buildFallbackInsights(
   return out;
 }
 
-/** Generates heuristic talking points from Census data. */
+/** Generates heuristic talking points from Census data when AI is unavailable. */
 function buildFallbackTalkingPoints(
   lead: Lead,
   census: { medianGrossRent: number | null },
