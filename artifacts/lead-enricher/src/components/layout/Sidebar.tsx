@@ -37,6 +37,7 @@ const NAV_MAIN = [
   },
 ];
 
+/** Main application sidebar with navigation, add-leads shortcut, and user footer. */
 export function Sidebar() {
   const [location] = useLocation();
 

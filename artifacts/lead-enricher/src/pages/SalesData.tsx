@@ -65,16 +65,6 @@ function ScoreBar({ value }: { value: number }) {
   );
 }
 
-function WalkBar({ value, label }: { value: number | null | undefined; label?: string | null }) {
-  if (value == null) return <span className="text-muted-foreground text-xs">—</span>;
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="font-mono text-sm font-semibold">{value}</span>
-      {label && <span className="text-[10px] text-muted-foreground leading-tight line-clamp-1 max-w-[90px]">{label}</span>}
-    </div>
-  );
-}
-
 function buildMailtoUrl(lead: Lead): string {
   if (!lead.enrichment?.outreachEmail) return `mailto:${lead.email}`;
   const subject = encodeURIComponent(lead.enrichment.outreachEmail.subject);
@@ -231,8 +221,6 @@ export default function SalesData() {
                 <TableHead style={{ color: "#6B6580" }}>Location</TableHead>
                 <TableHead style={{ color: "#6B6580" }}>Score</TableHead>
                 <TableHead style={{ color: "#6B6580" }}>Tier</TableHead>
-                <TableHead className="min-w-[90px]" style={{ color: "#6B6580" }}>Walk Score</TableHead>
-                <TableHead className="min-w-[90px]" style={{ color: "#6B6580" }}>Transit</TableHead>
                 <TableHead style={{ color: "#6B6580" }}>Renter %</TableHead>
                 <TableHead style={{ color: "#6B6580" }}>Median Rent</TableHead>
                 <TableHead style={{ color: "#6B6580" }}>News</TableHead>
@@ -243,7 +231,7 @@ export default function SalesData() {
               {filtered.map((lead) => {
                 const e = lead.enrichment!;
                 const renterPct = e.census.renterOccupiedPct != null
-                  ? `${(e.census.renterOccupiedPct * 100).toFixed(0)}%`
+                  ? `${e.census.renterOccupiedPct.toFixed(1)}%`
                   : "—";
                 const medianRent = e.census.medianGrossRent != null
                   ? `$${e.census.medianGrossRent.toLocaleString()}`
@@ -274,12 +262,6 @@ export default function SalesData() {
                     </TableCell>
                     <TableCell>
                       <TierBadge tier={e.tier} />
-                    </TableCell>
-                    <TableCell>
-                      <WalkBar value={e.walkScore.walk} label={e.walkScore.walkDescription} />
-                    </TableCell>
-                    <TableCell>
-                      <WalkBar value={e.walkScore.transit} label={e.walkScore.transitDescription} />
                     </TableCell>
                     <TableCell>
                       <span className="font-mono text-sm">{renterPct}</span>

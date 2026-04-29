@@ -1,8 +1,4 @@
-import type {
-  CensusData,
-  WalkScoreData,
-  NewsArticle,
-} from "@workspace/api-zod";
+import type { CensusData, NewsArticle } from "@workspace/api-zod";
 
 /**
  * RMA Lead Scoring Model — assumptions documented inline.
@@ -16,11 +12,9 @@ import type {
  *      assistant; growing companies have buying urgency and CapEx headroom).
  *   3. The market has high rent-per-unit
  *      (higher revenue at risk per missed lead → faster ROI on automation).
- *   4. The neighborhood is dense / walkable / transit-rich
- *      (these are the urban infill submarkets where multifamily concentrates).
  *
- * Scoring: starts at 50 (neutral) and applies weighted adjustments. Final
- * value is clamped to [0, 100]. Each adjustment emits a human-readable
+ * Scoring: starts at 30 (cold-leaning default) and applies weighted adjustments.
+ * Final value is clamped to [0, 100]. Each adjustment emits a human-readable
  * "reason" so SDRs can see exactly why a score landed where it did.
  *
  * Weight budget (max contribution if every signal is at its best):
@@ -29,11 +23,10 @@ import type {
  *   - Recent growth mentions (news)      : +15  ←  buying urgency signal
  *   - Rent revenue at stake (Census)     : +10
  *   - Median household income (Census)   :  +8
- *   - Walkability / transit (WalkScore)  :  +7
  *   - Market size / population (Census)  :  +5
  *   ----------------------------------------
- *   Total upside from base 50            : +90  → caps at 100
- *   Negative pull-down for poor fit      : up to −35
+ *   Total upside from base 30            : +83  → caps at 100
+ *   Negative pull-down for poor fit      : up to −25
  */
 export interface BaseScore {
   score: number;
@@ -79,9 +72,8 @@ const PORTFOLIO_SIZE_TERMS = [
   "billion-dollar",
 ];
 
-/** Computes a [0–100] heuristic lead score from WalkScore, Census, and news signals. */
+/** Computes a [0–100] heuristic lead score from Census and news signals. */
 export function computeBaseScore(args: {
-  walk: WalkScoreData;
   census: CensusData;
   news: NewsArticle[];
 }): BaseScore {
@@ -224,37 +216,6 @@ export function computeBaseScore(args: {
   }
 
   // ────────────────────────────────────────────────────────────
-  // 6) WALKABILITY / TRANSIT (max +7 / min −10)
-  //    Assumption: walkable, transit-rich neighborhoods are where
-  //    multifamily concentrates and where renters expect 24/7
-  //    digital interaction with leasing offices.
-  // ────────────────────────────────────────────────────────────
-  const w = args.walk.walk;
-  if (w !== null) {
-    if (w >= 90) {
-      score += 5;
-      reasons.push(`+5 Walker's paradise (${w}) — dense urban submarket`);
-    } else if (w >= 70) {
-      score += 3;
-      reasons.push(`+3 Very walkable (${w})`);
-    } else if (w >= 50) {
-      score += 1;
-      reasons.push(`+1 Somewhat walkable (${w})`);
-    } else if (w >= 25) {
-      score -= 4;
-      reasons.push(`−4 Car-dependent area (walk score ${w})`);
-    } else {
-      score -= 10;
-      reasons.push(`−10 Rural / very car-dependent (walk score ${w})`);
-    }
-  }
-  const t = args.walk.transit;
-  if (t !== null && t >= 60) {
-    score += 2;
-    reasons.push(`+2 Strong transit access (${t})`);
-  }
-
-  // ────────────────────────────────────────────────────────────
   // 7) MARKET SIZE / POPULATION (max +5 / min −7)
   //    Assumption: large MSAs have more multifamily inventory and
   //    a deeper pool of competing properties, increasing the value
@@ -284,7 +245,7 @@ export function computeBaseScore(args: {
 
 /** Converts a numeric score to a hot/warm/cold tier label. */
 export function tierFromScore(score: number): "hot" | "warm" | "cold" {
-  if (score >= 75) return "hot";
+  if (score >= 70) return "hot";
   if (score >= 50) return "warm";
   return "cold";
 }

@@ -1,10 +1,5 @@
 import { logger } from "../logger";
-import type {
-  CensusData,
-  Lead,
-  NewsArticle,
-  WalkScoreData,
-} from "@workspace/api-zod";
+import type { CensusData, Lead, NewsArticle } from "@workspace/api-zod";
 
 const GEMINI_API_KEY = process.env["GEMINI_API_KEY"];
 const GEMINI_MODEL = "gemini-2.5-flash";
@@ -15,7 +10,6 @@ export interface GeminiInsightInput {
     "name" | "email" | "company" | "propertyAddress" | "city" | "state" | "country"
   >;
   repNotes?: string | null;
-  walk: WalkScoreData;
   census: CensusData;
   news: NewsArticle[];
   baseScore: number;
@@ -32,14 +26,14 @@ export interface GeminiInsightOutput {
 
 const SYSTEM_PROMPT = `You are an expert SDR assistant for EliseAI, an AI leasing assistant for multifamily property managers.
 
-EliseAI handles 24/7 prospect management, AI-guided tours, scheduling, follow-ups, and move-in coordination so leasing teams can focus on closing. Best-fit prospects: multifamily operators in walkable, high-renter markets, actively growing, mid-to-large portfolios.
+EliseAI handles 24/7 prospect management, AI-guided tours, scheduling, follow-ups, and move-in coordination so leasing teams can focus on closing. Best-fit prospects: multifamily operators with mid-to-large portfolios, actively growing, in renter-dense markets.
 
 Your job:
-1. Suggest a numeric score adjustment (-20 to +20) and explain why in 2–4 short bullet reasons.
-2. Produce 3–5 SALES INSIGHTS — concrete, useful facts a rep needs before calling.
+1. Suggest a numeric score adjustment (-20 to +20) and explain why in 2–4 short bullet reasons. Use your own world knowledge about the company — if it is a well-known large operator (e.g. Greystar, AvalonBay, Camden, MAA, Equity Residential, NMI, Lincoln Property), apply a strong positive adjustment even if no news was provided. Absence of news does not mean a weak prospect. Distinguish between "unknown small operator" (neutral) and "known large/national operator" (positive boost).
+2. Produce 3–5 SALES INSIGHTS — concrete, useful facts a rep needs before calling. Draw on your knowledge of the company's portfolio size, markets, and reputation.
 3. Produce 3–5 TALKING POINTS — specific things to mention on a call.
 
-If rep notes are provided, use them to make the insights and talking points more specific.
+If rep notes are provided, use them to make insights and talking points more specific.
 
 Output strictly valid JSON matching the provided schema. No markdown, no extra prose.`;
 
@@ -53,10 +47,7 @@ export async function generateInsights(
     lead: input.lead,
     repNotes: input.repNotes || null,
     tier: input.tier,
-    locationContext: {
-      walkScore: input.walk,
-      demographics: input.census,
-    },
+    demographics: input.census,
     recentNews: input.news.map((n) => ({
       title: n.title,
       source: n.source,

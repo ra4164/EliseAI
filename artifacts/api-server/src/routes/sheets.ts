@@ -5,6 +5,7 @@ import type { Lead } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+/** Maps a Lead to an ordered string array matching PUSH_HEADERS for Sheets export. */
 function leadToRow(l: Lead): string[] {
   const e = l.enrichment;
   return PUSH_HEADERS.map((h) => {
@@ -45,6 +46,7 @@ function leadToRow(l: Lead): string[] {
   });
 }
 
+/** Pushes all enriched leads to the connected Google Sheet, returning the row count written. */
 router.post("/sheets/push", async (_req, res) => {
   try {
     const leads = await listLeads();
@@ -65,6 +67,7 @@ router.post("/sheets/push", async (_req, res) => {
   }
 });
 
+/** Reads leads from the connected Google Sheet and returns them as structured lead input rows. */
 router.get("/sheets/pull", async (_req, res) => {
   try {
     const allRows = await pullRowsFromSheet();

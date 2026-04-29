@@ -31,9 +31,6 @@ const ENRICHED_HEADERS = [
   "talkingPoints",
   "outreachSubject",
   "outreachBody",
-  "walkScore",
-  "transitScore",
-  "bikeScore",
   "medianHouseholdIncome",
   "medianGrossRent",
   "medianHomeValue",
@@ -74,6 +71,7 @@ function triggerDownload(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Generates and downloads a blank CSV template with the required lead column headers. */
 export function downloadCsvTemplate() {
   const sample = [
     {
@@ -89,6 +87,7 @@ export function downloadCsvTemplate() {
   triggerDownload("rma-leads-template.csv", rowsToCsv(CSV_HEADERS, sample));
 }
 
+/** Generates and downloads a full CSV export of enriched leads with all data fields. */
 export function downloadEnrichedCsv(leads: Lead[]) {
   const rows = leads.map((l) => {
     const e = l.enrichment;
@@ -113,9 +112,6 @@ export function downloadEnrichedCsv(leads: Lead[]) {
       talkingPoints: e?.talkingPoints.join(" | ") ?? "",
       outreachSubject: e?.outreachEmail.subject ?? "",
       outreachBody: e?.outreachEmail.body ?? "",
-      walkScore: e?.walkScore.walk ?? "",
-      transitScore: e?.walkScore.transit ?? "",
-      bikeScore: e?.walkScore.bike ?? "",
       medianHouseholdIncome: e?.census.medianHouseholdIncome ?? "",
       medianGrossRent: e?.census.medianGrossRent ?? "",
       medianHomeValue: e?.census.medianHomeValue ?? "",
@@ -184,6 +180,7 @@ function parseCsvText(text: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim().length > 0));
 }
 
+/** Parses raw CSV text into structured lead rows, returning both valid leads and any row-level errors. */
 export function parseLeadsCsv(text: string): {
   leads: ParsedRow[];
   errors: string[];
