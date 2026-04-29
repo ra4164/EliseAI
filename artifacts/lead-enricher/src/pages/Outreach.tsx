@@ -384,6 +384,7 @@ function TierPanel({ leads, tier }: { leads: Lead[]; tier: Tier }) {
   );
 }
 
+/** Outreach page listing enriched leads grouped by tier with mailto links and sent-status tracking. */
 export default function Outreach() {
   const { data, isLoading } = useListLeads({
     query: { queryKey: getListLeadsQueryKey() },

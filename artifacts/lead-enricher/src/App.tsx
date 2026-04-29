@@ -105,6 +105,7 @@ function Router() {
   );
 }
 
+/** Root application component wrapping providers, the router, and the global toaster. */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>

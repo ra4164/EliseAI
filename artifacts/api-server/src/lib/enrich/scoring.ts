@@ -216,7 +216,7 @@ export function computeBaseScore(args: {
   }
 
   // ────────────────────────────────────────────────────────────
-  // 7) MARKET SIZE / POPULATION (max +5 / min −7)
+  // 6) MARKET SIZE / POPULATION (max +5 / min −7)
   //    Assumption: large MSAs have more multifamily inventory and
   //    a deeper pool of competing properties, increasing the value
   //    of differentiation through an AI assistant.

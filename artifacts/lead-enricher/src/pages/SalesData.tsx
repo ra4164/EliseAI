@@ -115,6 +115,7 @@ function SendEmailCell({ lead }: { lead: Lead }) {
   );
 }
 
+/** Sales Data page displaying enriched leads with Census demographics, tier filters, and quick-send email. */
 export default function SalesData() {
   const { data, isLoading } = useListLeads({
     query: { queryKey: getListLeadsQueryKey() },

@@ -85,6 +85,7 @@ async function sheetsRequest(
   return res.json();
 }
 
+/** Clears Sheet1 and writes a header row followed by the provided data rows, returning the row count. */
 export async function pushRowsToSheet(rows: string[][]): Promise<number> {
   const range = "Sheet1!A1";
   await sheetsRequest(`/values/${encodeURIComponent(range)}:clear`, "POST");
@@ -98,6 +99,7 @@ export async function pushRowsToSheet(rows: string[][]): Promise<number> {
   return rows.length;
 }
 
+/** Reads all rows from Sheet1 and returns them as a 2D string array (first row is headers). */
 export async function pullRowsFromSheet(): Promise<string[][]> {
   const range = "Sheet1!A1:ZZ10000";
   const data = (await sheetsRequest(

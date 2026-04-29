@@ -234,6 +234,7 @@ function ConflictPanel({
   );
 }
 
+/** Add Leads page supporting single-lead form entry, CSV upload, and Google Sheets import. */
 export default function AddLeads() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();

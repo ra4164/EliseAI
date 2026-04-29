@@ -85,6 +85,7 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
+/** Lead detail page showing enrichment data, score breakdown, news, outreach email editor, and funnel controls. */
 export default function LeadDetail() {
   const { leadId } = useParams();
   const queryClient = useQueryClient();

@@ -85,6 +85,7 @@ function hashString(str: string): number {
   return Math.abs(h);
 }
 
+/** Leads list page with search, tier filtering, batch enrichment, and CSV export. */
 export default function Leads() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useListLeads({

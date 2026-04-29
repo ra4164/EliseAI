@@ -7,12 +7,12 @@ const REAL_ESTATE_CONTEXT = `(apartment OR multifamily OR "real estate" OR resid
 
 const BUYING_SIGNALS = `(funding OR hiring OR layoffs OR acquisition OR expansion OR raises OR IPO OR "going public" OR merger OR "joint venture" OR "new community" OR groundbreaking)`;
 
-export const REAL_ESTATE_TERMS = [
+const REAL_ESTATE_TERMS = [
   "apartment", "multifamily", "real estate", "residential", "properties",
   "leasing", "reit", "housing", "property management", "rent", "rental",
 ];
 
-export const BUYING_SIGNAL_TERMS = [
+const BUYING_SIGNAL_TERMS = [
   "funding", "funded", "raises", "raised", "investment", "series a", "series b",
   "series c", "venture", "ipo", "going public",
   "hiring", "hires", "hired", "jobs", "workforce", "headcount", "talent",

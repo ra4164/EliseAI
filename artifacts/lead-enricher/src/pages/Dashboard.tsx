@@ -209,6 +209,7 @@ function ScheduleBanner({ onTrigger }: { onTrigger: () => void }) {
   );
 }
 
+/** Dashboard page showing lead stats, score distribution, scheduler status, and stale lead alerts. */
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const { data: stats, isLoading } = useGetLeadStats({
